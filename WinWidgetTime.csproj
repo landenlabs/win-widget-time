@@ -7,9 +7,9 @@
     <UseWPF>true</UseWPF>
     <AssemblyName>WinWidgetTime</AssemblyName>
     <RootNamespace>WinWidgetTime</RootNamespace>
-    <Version>1.2.0</Version>
-    <AssemblyVersion>1.2.0</AssemblyVersion>
-    <FileVersion>1.2.0</FileVersion>
+    <Version>6.04.26</Version>
+    <AssemblyVersion>6.04.26</AssemblyVersion>
+    <FileVersion>6.04.26</FileVersion>
   </PropertyGroup>
   <ItemGroup>
     <Content Include="Assets\landen_labs.mp4">
