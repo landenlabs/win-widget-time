@@ -1,5 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net8.0-windows</TargetFramework>
@@ -8,11 +7,10 @@
     <UseWPF>true</UseWPF>
     <AssemblyName>WinWidgetTime</AssemblyName>
     <RootNamespace>WinWidgetTime</RootNamespace>
-    <Version>1.1.0</Version>
-    <AssemblyVersion>1.1.0</AssemblyVersion>
-    <FileVersion>1.1.0</FileVersion>
+    <Version>1.2.0</Version>
+    <AssemblyVersion>1.2.0</AssemblyVersion>
+    <FileVersion>1.2.0</FileVersion>
   </PropertyGroup>
-
   <ItemGroup>
     <Content Include="Assets\landen_labs.mp4">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -21,10 +19,8 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
-
   <ItemGroup>
     <PackageReference Include="GeoTimeZone" Version="6.1.0" />
     <PackageReference Include="TimeZoneConverter" Version="6.0.0" />
   </ItemGroup>
-
 </Project>
