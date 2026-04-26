@@ -1,3 +1,4 @@
+// Copyright (c) 2026 LanDen Labs - Dennis Lang
 using Microsoft.Win32;
 
 namespace WinWidgetTime.Services;

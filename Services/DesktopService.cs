@@ -1,3 +1,4 @@
+// Copyright (c) 2026 LanDen Labs - Dennis Lang
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;

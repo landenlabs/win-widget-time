@@ -1,3 +1,4 @@
+// Copyright (c) 2026 LanDen Labs - Dennis Lang
 namespace WinWidgetTime.Models;
 
 public class AppSettings

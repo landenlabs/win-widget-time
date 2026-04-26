@@ -1,3 +1,4 @@
+// Copyright (c) 2026 LanDen Labs - Dennis Lang
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Media;

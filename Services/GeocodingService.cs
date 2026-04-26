@@ -1,3 +1,4 @@
+// Copyright (c) 2026 LanDen Labs - Dennis Lang
 using System.Net.Http;
 using System.Text.Json;
 using GeoTimeZone;

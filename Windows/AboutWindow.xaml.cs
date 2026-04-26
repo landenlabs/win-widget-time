@@ -1,3 +1,4 @@
+// Copyright (c) 2026 LanDen Labs - Dennis Lang
 using System.Diagnostics;
 using System.IO;
 using System.Windows;

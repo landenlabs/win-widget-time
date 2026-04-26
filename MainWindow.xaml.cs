@@ -1,3 +1,4 @@
+// Copyright (c) 2026 LanDen Labs - Dennis Lang
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Threading;
