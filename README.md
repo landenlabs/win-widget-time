@@ -13,11 +13,17 @@ A lightweight, transparent **World Clock desktop widget** for Windows 11. Displa
 
 ## Screenshots
 
-| Widget | Settings |
-|--------|----------|
-| ![Widget on desktop](docs/screenshots/widget.png) | ![Settings window](docs/screenshots/settings.png) |
+**Example on Desktop**
 
-> *Drop screenshots into `docs/screenshots/` to populate the table above.*
+![Widget on desktop](screens/on-desktop.png)
+
+**Settings dialog**
+
+![Settings dialog](screens/settings.png)
+
+**About dialog**
+
+![About dialog](screens/about.png)
 
 ---
 
