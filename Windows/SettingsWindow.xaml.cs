@@ -8,6 +8,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using WinWidgetTime.Models;
 using WinWidgetTime.Services;
+using MainWin = WinWidgetTime.MainWindow;
 
 namespace WinWidgetTime.Windows;
 
@@ -36,7 +37,7 @@ public partial class SettingsWindow : Window, INotifyPropertyChanged
     public int FontSizeValue
     {
         get => _fontSizeValue;
-        set { _fontSizeValue = value; OnPropertyChanged(); }
+        set { _fontSizeValue = value; OnPropertyChanged(); GetMainWindow()?.ApplyFontSize(value); }
     }
 
     private bool _autoStartEnabled;
@@ -53,6 +54,42 @@ public partial class SettingsWindow : Window, INotifyPropertyChanged
         set { _embedInWallpaper = value; OnPropertyChanged(); }
     }
 
+    private string _bgColorHex = "#000000";
+    public string BgColorHex
+    {
+        get => _bgColorHex;
+        set
+        {
+            _bgColorHex = value;
+            _bgColorBrush = null;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(BgColorBrush));
+            LivePreviewBackground();
+        }
+    }
+
+    private SolidColorBrush? _bgColorBrush;
+    public SolidColorBrush BgColorBrush => _bgColorBrush ??= ParseBgBrush();
+
+    private SolidColorBrush ParseBgBrush()
+    {
+        try { return new SolidColorBrush((Color)ColorConverter.ConvertFromString(_bgColorHex)); }
+        catch { return Brushes.Black; }
+    }
+
+    private int _bgOpacityPercent;
+    public int BgOpacityPercent
+    {
+        get => _bgOpacityPercent;
+        set { _bgOpacityPercent = value; OnPropertyChanged(); LivePreviewBackground(); }
+    }
+
+    // ── Originals for Cancel restore ────────────────────────────────────────
+
+    private readonly int _origFontSize;
+    private readonly string _origBgColor;
+    private readonly int _origBgOpacityPercent;
+
     // ── Constructor ──────────────────────────────────────────────────────────
 
     public SettingsWindow()
@@ -60,19 +97,51 @@ public partial class SettingsWindow : Window, INotifyPropertyChanged
         InitializeComponent();
         Topmost = true;
 
+        // Snapshot originals so Cancel can restore the live preview
+        _origFontSize         = App.Settings.FontSize;
+        _origBgColor          = App.Settings.BackgroundColor;
+        _origBgOpacityPercent = (int)Math.Round(App.Settings.BackgroundOpacity * 100);
+
         // Load working copies
         foreach (var p in App.Settings.Places)
             Places.Add(p.Clone());
 
-        FontSizeValue = App.Settings.FontSize;
+        FontSizeValue   = App.Settings.FontSize;
         AutoStartEnabled = AutoStartService.IsEnabled();
         EmbedInWallpaper = App.Settings.EmbedInWallpaper;
+        _bgColorHex      = App.Settings.BackgroundColor;
+        _bgOpacityPercent = (int)Math.Round(App.Settings.BackgroundOpacity * 100);
+        OnPropertyChanged(nameof(BgColorHex));
+        OnPropertyChanged(nameof(BgColorBrush));
+        OnPropertyChanged(nameof(BgOpacityPercent));
 
         // Subscribe to SelectedPlace.PropertyChanged to keep edit panel in sync
         Places.CollectionChanged += (_, _) => { };
 
         if (Places.Count > 0)
             SelectedPlace = Places[0];
+
+        FormatHelpText.Text =
+            "yyyy    4-digit year           2026\n" +
+            "yy      2-digit year           26\n" +
+            "MMMM    Full month name        January\n" +
+            "MMM     3-char month abbr.     Jan\n" +
+            "MM      2-digit month          01 – 12\n" +
+            "M       Month number           1 – 12\n" +
+            "dddd    Full day name          Monday\n" +
+            "ddd     3-char day abbr.       Mon\n" +
+            "dd      2-digit day            01 – 31\n" +
+            "d       Day number             1 – 31\n" +
+            "HH      24-hour, padded        00 – 23\n" +
+            "H       24-hour                0 – 23\n" +
+            "hh      12-hour, padded        01 – 12\n" +
+            "h       12-hour                1 – 12\n" +
+            "mm      Minutes                00 – 59\n" +
+            "ss      Seconds                00 – 59\n" +
+            "tt      AM / PM designator     AM · PM\n" +
+            "fff     Milliseconds           001 – 999\n" +
+            "zzz     UTC offset (+hh:mm)    +05:30\n" +
+            "z       UTC offset hours       +5";
     }
 
     // ── Edit panel sync ──────────────────────────────────────────────────────
@@ -188,6 +257,30 @@ public partial class SettingsWindow : Window, INotifyPropertyChanged
         LookupStatus.Text = $"✓  {result.DisplayName.Split(',')[0].Trim()}";
     }
 
+    // ── Live preview helpers ─────────────────────────────────────────────────
+
+    private static MainWin? GetMainWindow() => Application.Current.MainWindow as MainWin;
+
+    private void LivePreviewBackground()
+        => GetMainWindow()?.ApplyBackground(_bgColorHex, _bgOpacityPercent / 100.0);
+
+    // ── Background color picker ──────────────────────────────────────────────
+
+    private void BgColorSwatch_Click(object sender, MouseButtonEventArgs e)
+    {
+        var picker = new ColorPickerWindow(_bgColorHex) { Owner = this };
+        if (picker.ShowDialog() == true)
+        {
+            var c = picker.SelectedColor;
+            BgColorHex = $"#{c.R:X2}{c.G:X2}{c.B:X2}";
+        }
+    }
+
+    // ── Format help popup ────────────────────────────────────────────────────
+
+    private void FormatHelp_Click(object sender, RoutedEventArgs e)
+        => FormatHelpPopup.IsOpen = !FormatHelpPopup.IsOpen;
+
     // ── Color picker ─────────────────────────────────────────────────────────
 
     private void ColorSwatch_Click(object sender, RoutedEventArgs e) => OpenColorPicker();
@@ -289,6 +382,8 @@ public partial class SettingsWindow : Window, INotifyPropertyChanged
         App.Settings.Places = [.. Places];
         App.Settings.FontSize = FontSizeValue;
         App.Settings.EmbedInWallpaper = EmbedInWallpaper;
+        App.Settings.BackgroundColor = _bgColorHex;
+        App.Settings.BackgroundOpacity = _bgOpacityPercent / 100.0;
 
         AutoStartService.SetEnabled(AutoStartEnabled);
         App.Settings.AutoStart = AutoStartEnabled;
@@ -300,6 +395,9 @@ public partial class SettingsWindow : Window, INotifyPropertyChanged
 
     private void Cancel_Click(object sender, RoutedEventArgs e)
     {
+        // Revert any live-preview changes
+        GetMainWindow()?.ApplyFontSize(_origFontSize);
+        GetMainWindow()?.ApplyBackground(_origBgColor, _origBgOpacityPercent / 100.0);
         DialogResult = false;
         Close();
     }

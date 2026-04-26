@@ -1,6 +1,7 @@
 // Copyright (c) 2026 LanDen Labs - Dennis Lang
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Threading;
 using WinWidgetTime.Services;
 using WinWidgetTime.ViewModels;
@@ -36,6 +37,7 @@ public partial class MainWindow : Window
         base.OnSourceInitialized(e);
 
         ApplyFontSize(App.Settings.FontSize);
+        ApplyBackground(App.Settings.BackgroundColor, App.Settings.BackgroundOpacity);
 
         if (App.Settings.EmbedInWallpaper)
         {
@@ -56,9 +58,20 @@ public partial class MainWindow : Window
         _items = App.Settings.Places.Select(p => new TimeDisplayItem(p)).ToList();
         TimeList.ItemsSource = _items;
         ApplyFontSize(App.Settings.FontSize);
+        ApplyBackground(App.Settings.BackgroundColor, App.Settings.BackgroundOpacity);
     }
 
     public void ApplyFontSize(int size) => TimeList.FontSize = size;
+
+    public void ApplyBackground(string hexColor, double opacity)
+    {
+        try
+        {
+            var color = (Color)ColorConverter.ConvertFromString(hexColor);
+            WidgetBorder.Background = new SolidColorBrush(color) { Opacity = opacity };
+        }
+        catch { }
+    }
 
     private void Tick()
     {

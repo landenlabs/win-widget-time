@@ -66,16 +66,16 @@
             <Rectangle Height="1" Fill="#33FFFFFF" Margin="0,0,0,6"/>
 
             <!-- Time rows -->
-            <ItemsControl x:Name="TimeList">
+            <ItemsControl x:Name="TimeList" Grid.IsSharedSizeScope="True">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate DataType="{x:Type vm:TimeDisplayItem}">
                         <Grid Margin="0,3">
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" MinWidth="110"/>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="ColLabel"/>
                                 <ColumnDefinition Width="16"/>
-                                <ColumnDefinition Width="Auto" MinWidth="85"/>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="ColDate"/>
                                 <ColumnDefinition Width="12"/>
-                                <ColumnDefinition Width="Auto" MinWidth="105"/>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="ColTime"/>
                             </Grid.ColumnDefinitions>
 
                             <TextBlock Grid.Column="0"
@@ -87,7 +87,6 @@
                             <TextBlock Grid.Column="2"
                                        Text="{Binding DatePart}"
                                        Foreground="{Binding ColorBrush}"
-                                       Opacity="0.75"
                                        VerticalAlignment="Center"/>
 
                             <TextBlock Grid.Column="4"

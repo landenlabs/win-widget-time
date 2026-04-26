@@ -58,8 +58,16 @@ public class TimeDisplayItem : INotifyPropertyChanged
         {
             var tzi = TZConvert.GetTimeZoneInfo(_entry.TimeZoneId);
             var now = TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, tzi);
-            DatePart = now.ToString(dateFormat);
-            TimePart = now.ToString(timeFormat);
+            if (!string.IsNullOrWhiteSpace(_entry.DateTimeFormat))
+            {
+                DatePart = "";
+                TimePart = now.ToString(_entry.DateTimeFormat);
+            }
+            else
+            {
+                DatePart = now.ToString(dateFormat);
+                TimePart = now.ToString(timeFormat);
+            }
         }
         catch
         {

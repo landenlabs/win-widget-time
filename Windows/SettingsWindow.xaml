@@ -3,8 +3,8 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="WinWidgetTime — Settings"
-        Width="660" Height="510"
-        MinWidth="600" MinHeight="460"
+        Width="900" Height="580"
+        MinWidth="800" MinHeight="520"
         WindowStartupLocation="CenterScreen"
         Background="#FF181825"
         Foreground="#FFCDD6F4"
@@ -21,9 +21,9 @@
         <!-- ── Main two-column content ── -->
         <Grid Grid.Row="0" Margin="16,16,16,0">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="190"/>
+                <ColumnDefinition Width="*" MinWidth="280"/>
                 <ColumnDefinition Width="12"/>
-                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*" MinWidth="280"/>
             </Grid.ColumnDefinitions>
 
             <!-- Left: places list -->
@@ -34,8 +34,25 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <TextBlock Grid.Row="0" Text="Places" Style="{StaticResource DarkLabel}"
-                           FontSize="13" FontWeight="SemiBold" Foreground="#FF89B4FA" Margin="0,0,0,6"/>
+                <!-- Column headers -->
+                <Grid Grid.Row="0" Margin="0,0,0,4">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="9"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="Places"
+                               HorizontalAlignment="Left"
+                               Style="{StaticResource DarkLabel}"
+                               FontSize="13" FontWeight="SemiBold" Foreground="#FF89B4FA"/>
+                    <Rectangle Grid.Column="1" Width="1" Fill="#FF454570"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Stretch" Margin="0,2,0,0"/>
+                    <TextBlock Grid.Column="2" Text="Format"
+                               HorizontalAlignment="Left"
+                               FontSize="11" FontWeight="SemiBold" Foreground="#FF89B4FA"
+                               VerticalAlignment="Bottom" Margin="4,0,0,0"/>
+                </Grid>
 
                 <ListBox Grid.Row="1"
                          x:Name="PlacesList"
@@ -56,6 +73,7 @@
                             <Setter Property="Padding" Value="8,6"/>
                             <Setter Property="Background" Value="Transparent"/>
                             <Setter Property="Foreground" Value="#FFCDD6F4"/>
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
                             <Style.Triggers>
                                 <Trigger Property="IsSelected" Value="True">
                                     <Setter Property="Background" Value="#FF313244"/>
@@ -68,30 +86,51 @@
                     </ListBox.Resources>
                     <ListBox.ItemTemplate>
                         <DataTemplate>
-                            <StackPanel Orientation="Horizontal">
-                                <!-- Drag grip handle -->
-                                <Border Tag="DragHandle"
-                                        Padding="3,0"
-                                        Margin="0,0,5,0"
-                                        Cursor="SizeAll"
-                                        VerticalAlignment="Center"
-                                        Background="Transparent"
-                                        ToolTip="Drag to reorder">
-                                    <UniformGrid Columns="2" Rows="3" Width="8" Height="12">
-                                        <Ellipse Fill="#FF585B70" Margin="0.5"/>
-                                        <Ellipse Fill="#FF585B70" Margin="0.5"/>
-                                        <Ellipse Fill="#FF585B70" Margin="0.5"/>
-                                        <Ellipse Fill="#FF585B70" Margin="0.5"/>
-                                        <Ellipse Fill="#FF585B70" Margin="0.5"/>
-                                        <Ellipse Fill="#FF585B70" Margin="0.5"/>
-                                    </UniformGrid>
-                                </Border>
-                                <Ellipse Width="9" Height="9" Margin="0,0,8,0"
-                                         VerticalAlignment="Center"
-                                         Fill="{Binding ColorBrush}"/>
-                                <TextBlock Text="{Binding DisplayName}" VerticalAlignment="Center"
-                                           TextTrimming="CharacterEllipsis"/>
-                            </StackPanel>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="9"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0" Orientation="Horizontal">
+                                    <!-- Drag grip handle -->
+                                    <Border Tag="DragHandle"
+                                            Padding="3,0"
+                                            Margin="0,0,5,0"
+                                            Cursor="SizeAll"
+                                            VerticalAlignment="Center"
+                                            Background="Transparent"
+                                            ToolTip="Drag to reorder">
+                                        <UniformGrid Columns="2" Rows="3" Width="8" Height="12">
+                                            <Ellipse Fill="#FF585B70" Margin="0.5"/>
+                                            <Ellipse Fill="#FF585B70" Margin="0.5"/>
+                                            <Ellipse Fill="#FF585B70" Margin="0.5"/>
+                                            <Ellipse Fill="#FF585B70" Margin="0.5"/>
+                                            <Ellipse Fill="#FF585B70" Margin="0.5"/>
+                                            <Ellipse Fill="#FF585B70" Margin="0.5"/>
+                                        </UniformGrid>
+                                    </Border>
+                                    <Ellipse Width="9" Height="9" Margin="0,0,8,0"
+                                             VerticalAlignment="Center"
+                                             Fill="{Binding ColorBrush}"/>
+                                    <TextBlock Text="{Binding DisplayName}" VerticalAlignment="Center"
+                                               TextTrimming="CharacterEllipsis"/>
+                                </StackPanel>
+                                <!-- Vertical divider -->
+                                <Rectangle Grid.Column="1" Width="1" Fill="#FF454570"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Stretch" Margin="0,2,0,2"/>
+                                <!-- Per-place format string -->
+                                <TextBlock Grid.Column="2"
+                                           Text="{Binding DateTimeFormat}"
+                                           HorizontalAlignment="Left"
+                                           VerticalAlignment="Center"
+                                           Margin="4,0,0,0"
+                                           FontFamily="Consolas, Courier New"
+                                           Foreground="#FFCDD6F4"
+                                           TextTrimming="CharacterEllipsis"
+                                           ToolTip="{Binding DateTimeFormat}"/>
+                            </Grid>
                         </DataTemplate>
                     </ListBox.ItemTemplate>
                 </ListBox>
@@ -113,6 +152,8 @@
                     Padding="16">
                 <Grid IsEnabled="{Binding HasSelectedPlace}">
                     <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="14"/>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="14"/>
                         <RowDefinition Height="Auto"/>
@@ -192,53 +233,114 @@
                         </StackPanel>
                     </StackPanel>
 
+                    <!-- Date/Time Format -->
+                    <StackPanel Grid.Row="8">
+                        <TextBlock Text="Date/Time Format" Style="{StaticResource DarkLabel}"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="8"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox Grid.Column="0"
+                                     x:Name="FormatBox"
+                                     Style="{StaticResource DarkTextBox}"
+                                     FontFamily="Consolas, Courier New"
+                                     Text="{Binding SelectedPlace.DateTimeFormat, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                     ToolTip="Custom combined format. Leave empty to use global date+time format."/>
+                            <Button Grid.Column="2"
+                                    x:Name="FormatHelpBtn"
+                                    Content="?"
+                                    Style="{StaticResource SubtleButton}"
+                                    Padding="9,5"
+                                    FontWeight="Bold"
+                                    ToolTip="Show format token reference"
+                                    Click="FormatHelp_Click"/>
+                        </Grid>
+                        <TextBlock Margin="0,4,0,0"
+                                   FontSize="10"
+                                   Foreground="#FF6C7086"
+                                   Text="Leave empty for global format  (e.g. ddd MMM dd  hh:mm:ss tt)"/>
+                    </StackPanel>
+
                 </Grid>
             </Border>
         </Grid>
 
-        <!-- ── Global settings strip ── -->
-        <Border Grid.Row="1" Background="#FF1E1E2E" Margin="16,12,16,0" CornerRadius="6" Padding="16,12">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="24"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
+        <!-- ── Widget appearance strip ── -->
+        <Border Grid.Row="1" Background="#FF1E1E2E" Margin="16,12,16,0" CornerRadius="6" Padding="16,10">
+            <StackPanel>
 
-                <!-- Font size -->
-                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                    <TextBlock Text="Font Size:" Foreground="#FFA6ADC8" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                <!-- Label -->
+                <TextBlock Text="Widget Appearance"
+                           Foreground="#FF89B4FA" FontWeight="SemiBold" FontSize="12"
+                           Margin="0,0,0,8"/>
+
+                <!-- Appearance controls row -->
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,0,8">
+
+                    <!-- Font size -->
+                    <TextBlock Text="Font Size:" Foreground="#FFA6ADC8" VerticalAlignment="Center" Margin="0,0,8,0"/>
                     <Slider x:Name="FontSizeSlider"
-                            Width="140"
+                            Width="120"
                             Minimum="10" Maximum="36"
                             Value="{Binding FontSizeValue, Mode=TwoWay}"
                             TickFrequency="1" IsSnapToTickEnabled="True"
                             VerticalAlignment="Center"/>
-                    <TextBlock Margin="8,0,0,0"
+                    <TextBlock Margin="6,0,0,0" Width="34"
                                VerticalAlignment="Center"
-                               Foreground="#FF89B4FA"
-                               FontWeight="SemiBold">
-                        <TextBlock.Text>
-                            <Binding Path="FontSizeValue" StringFormat="{}{0}px"/>
-                        </TextBlock.Text>
-                    </TextBlock>
+                               Foreground="#FF89B4FA" FontWeight="SemiBold"
+                               Text="{Binding FontSizeValue, StringFormat={}{0}px}"/>
+
+                    <!-- Divider -->
+                    <Rectangle Width="1" Fill="#FF454570" Margin="14,1,14,1" VerticalAlignment="Stretch"/>
+
+                    <!-- Background color -->
+                    <TextBlock Text="Background:" Foreground="#FFA6ADC8" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                    <Border x:Name="BgColorSwatch"
+                            Width="42" Height="22"
+                            CornerRadius="3"
+                            Background="{Binding BgColorBrush}"
+                            BorderBrush="#FF454570" BorderThickness="1"
+                            Cursor="Hand"
+                            Margin="0,0,12,0"
+                            MouseLeftButtonDown="BgColorSwatch_Click"
+                            ToolTip="Click to change background color"/>
+
+                    <!-- Divider -->
+                    <Rectangle Width="1" Fill="#FF454570" Margin="0,1,14,1" VerticalAlignment="Stretch"/>
+
+                    <!-- Opacity -->
+                    <TextBlock Text="Opacity:" Foreground="#FFA6ADC8" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                    <Slider x:Name="OpacitySlider"
+                            Width="110"
+                            Minimum="0" Maximum="100"
+                            Value="{Binding BgOpacityPercent, Mode=TwoWay}"
+                            TickFrequency="1" IsSnapToTickEnabled="True"
+                            VerticalAlignment="Center"/>
+                    <TextBlock Margin="6,0,0,0" Width="34"
+                               VerticalAlignment="Center"
+                               Foreground="#FF89B4FA" FontWeight="SemiBold"
+                               Text="{Binding BgOpacityPercent, StringFormat={}{0}%}"/>
+
                 </StackPanel>
 
-                <!-- Checkboxes -->
-                <StackPanel Grid.Column="2" Orientation="Horizontal">
+                <!-- Checkboxes row -->
+                <StackPanel Orientation="Horizontal">
                     <CheckBox x:Name="AutoStartCheck"
                               Content="Auto-start on login"
                               Foreground="#FFCDD6F4"
                               IsChecked="{Binding AutoStartEnabled, Mode=TwoWay}"
                               VerticalAlignment="Center"
-                              Margin="0,0,20,0"/>
+                              Margin="0,0,24,0"/>
                     <CheckBox x:Name="EmbedCheck"
                               Content="Embed in wallpaper layer"
                               Foreground="#FFCDD6F4"
                               IsChecked="{Binding EmbedInWallpaper, Mode=TwoWay}"
                               VerticalAlignment="Center"/>
                 </StackPanel>
-            </Grid>
+
+            </StackPanel>
         </Border>
 
         <!-- ── OK / Cancel ── -->
@@ -250,5 +352,44 @@
             <Button Content="Save"   Style="{StaticResource AccentButton}"
                     Click="Save_Click"/>
         </StackPanel>
+
+        <!-- ── Format token reference popup ── -->
+        <Popup x:Name="FormatHelpPopup"
+               Grid.Row="0"
+               PlacementTarget="{Binding ElementName=FormatHelpBtn}"
+               Placement="Left"
+               StaysOpen="False"
+               AllowsTransparency="True"
+               PopupAnimation="Fade">
+            <Border Background="#FF252535"
+                    BorderBrush="#FF454570"
+                    BorderThickness="1"
+                    CornerRadius="6"
+                    Padding="14,10">
+                <StackPanel>
+                    <TextBlock Text="Date / Time Format Tokens"
+                               FontWeight="SemiBold"
+                               FontSize="12"
+                               Foreground="#FF89B4FA"
+                               Margin="0,0,0,8"/>
+                    <TextBox x:Name="FormatHelpText"
+                             IsReadOnly="True"
+                             AcceptsReturn="True"
+                             FontFamily="Consolas, Courier New"
+                             FontSize="11"
+                             Foreground="#FFCDD6F4"
+                             Background="Transparent"
+                             BorderThickness="0"
+                             Padding="0"
+                             IsTabStop="False"/>
+                    <Rectangle Height="1" Fill="#FF454570" Margin="0,8,0,6"/>
+                    <TextBlock FontSize="10" Foreground="#FF6C7086">
+                        <Run Text="Example: "/>
+                        <Run Text="ddd MMM dd  hh:mm:ss tt" FontFamily="Consolas, Courier New" Foreground="#FFA6ADC8"/>
+                    </TextBlock>
+                </StackPanel>
+            </Border>
+        </Popup>
+
     </Grid>
 </Window>

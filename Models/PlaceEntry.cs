@@ -12,6 +12,7 @@ public class PlaceEntry : INotifyPropertyChanged
     private string _timeZoneId = "UTC";
     private string _label = "";
     private string _color = "#00FF88";
+    private string _dateTimeFormat = "";
     private SolidColorBrush? _colorBrush;
 
     public string CityName
@@ -30,6 +31,12 @@ public class PlaceEntry : INotifyPropertyChanged
     {
         get => _label;
         set { _label = value; OnPropertyChanged(); OnPropertyChanged(nameof(DisplayName)); }
+    }
+
+    public string DateTimeFormat
+    {
+        get => _dateTimeFormat;
+        set { _dateTimeFormat = value; OnPropertyChanged(); }
     }
 
     [JsonIgnore]
@@ -61,7 +68,8 @@ public class PlaceEntry : INotifyPropertyChanged
         CityName = CityName,
         TimeZoneId = TimeZoneId,
         Label = Label,
-        Color = Color
+        Color = Color,
+        DateTimeFormat = DateTimeFormat
     };
 
     public override string ToString() => string.IsNullOrEmpty(Label) ? CityName : Label;
