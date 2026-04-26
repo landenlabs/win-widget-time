@@ -1,0 +1,253 @@
+<Window x:Class="WinWidgetTime.Windows.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="WinWidgetTime — Settings"
+        Width="660" Height="510"
+        MinWidth="600" MinHeight="460"
+        WindowStartupLocation="CenterScreen"
+        Background="#FF181825"
+        Foreground="#FFCDD6F4"
+        WindowStyle="SingleBorderWindow"
+        DataContext="{Binding RelativeSource={RelativeSource Self}}">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- ── Main two-column content ── -->
+        <Grid Grid.Row="0" Margin="16,16,16,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="190"/>
+                <ColumnDefinition Width="12"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Left: places list -->
+            <Grid Grid.Column="0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Row="0" Text="Places" Style="{StaticResource DarkLabel}"
+                           FontSize="13" FontWeight="SemiBold" Foreground="#FF89B4FA" Margin="0,0,0,6"/>
+
+                <ListBox Grid.Row="1"
+                         x:Name="PlacesList"
+                         ItemsSource="{Binding Places}"
+                         SelectedItem="{Binding SelectedPlace, Mode=TwoWay}"
+                         Background="#FF1E1E2E"
+                         BorderBrush="#FF454570"
+                         Foreground="#FFCDD6F4"
+                         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                         AllowDrop="True"
+                         PreviewMouseLeftButtonDown="PlacesList_PreviewMouseLeftButtonDown"
+                         PreviewMouseMove="PlacesList_PreviewMouseMove"
+                         PreviewMouseLeftButtonUp="PlacesList_PreviewMouseLeftButtonUp"
+                         DragOver="PlacesList_DragOver"
+                         Drop="PlacesList_Drop">
+                    <ListBox.Resources>
+                        <Style TargetType="ListBoxItem">
+                            <Setter Property="Padding" Value="8,6"/>
+                            <Setter Property="Background" Value="Transparent"/>
+                            <Setter Property="Foreground" Value="#FFCDD6F4"/>
+                            <Style.Triggers>
+                                <Trigger Property="IsSelected" Value="True">
+                                    <Setter Property="Background" Value="#FF313244"/>
+                                </Trigger>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="#FF2A2A3E"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ListBox.Resources>
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <!-- Drag grip handle -->
+                                <Border Tag="DragHandle"
+                                        Padding="3,0"
+                                        Margin="0,0,5,0"
+                                        Cursor="SizeAll"
+                                        VerticalAlignment="Center"
+                                        Background="Transparent"
+                                        ToolTip="Drag to reorder">
+                                    <UniformGrid Columns="2" Rows="3" Width="8" Height="12">
+                                        <Ellipse Fill="#FF585B70" Margin="0.5"/>
+                                        <Ellipse Fill="#FF585B70" Margin="0.5"/>
+                                        <Ellipse Fill="#FF585B70" Margin="0.5"/>
+                                        <Ellipse Fill="#FF585B70" Margin="0.5"/>
+                                        <Ellipse Fill="#FF585B70" Margin="0.5"/>
+                                        <Ellipse Fill="#FF585B70" Margin="0.5"/>
+                                    </UniformGrid>
+                                </Border>
+                                <Ellipse Width="9" Height="9" Margin="0,0,8,0"
+                                         VerticalAlignment="Center"
+                                         Fill="{Binding ColorBrush}"/>
+                                <TextBlock Text="{Binding DisplayName}" VerticalAlignment="Center"
+                                           TextTrimming="CharacterEllipsis"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+
+                <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,8,0,0">
+                    <Button Content="+ Add"    Style="{StaticResource SubtleButton}"
+                            Padding="10,5" Margin="0,0,6,0" Click="Add_Click"/>
+                    <Button Content="− Delete" Style="{StaticResource SubtleButton}"
+                            Padding="10,5"
+                            IsEnabled="{Binding HasSelectedPlace}"
+                            Click="Delete_Click"/>
+                </StackPanel>
+            </Grid>
+
+            <!-- Right: edit form -->
+            <Border Grid.Column="2"
+                    Background="#FF1E1E2E"
+                    CornerRadius="6"
+                    Padding="16">
+                <Grid IsEnabled="{Binding HasSelectedPlace}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="14"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="14"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="14"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- City name + lookup -->
+                    <StackPanel Grid.Row="0">
+                        <TextBlock Text="City / Place" Style="{StaticResource DarkLabel}"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="8"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox Grid.Column="0"
+                                     x:Name="CityBox"
+                                     Style="{StaticResource DarkTextBox}"
+                                     Text="{Binding SelectedPlace.CityName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                     KeyDown="CityBox_KeyDown"/>
+                            <Button Grid.Column="2"
+                                    x:Name="LookupBtn"
+                                    Content="Look up"
+                                    Style="{StaticResource SubtleButton}"
+                                    Padding="10,6"
+                                    Click="Lookup_Click"/>
+                        </Grid>
+                        <TextBlock x:Name="LookupStatus" Margin="0,4,0,0"
+                                   FontSize="11" Foreground="#FF6C7086"
+                                   TextTrimming="CharacterEllipsis"/>
+                    </StackPanel>
+
+                    <!-- Timezone (readonly, populated by lookup) -->
+                    <StackPanel Grid.Row="2">
+                        <TextBlock Text="Time Zone" Style="{StaticResource DarkLabel}"/>
+                        <TextBox x:Name="TzBox"
+                                 Style="{StaticResource DarkTextBox}"
+                                 Text="{Binding SelectedPlace.TimeZoneId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                 ToolTip="IANA timezone ID (e.g. America/New_York). Auto-filled by Look up, or enter manually."/>
+                        <TextBlock x:Name="TzOffsetLabel"
+                                   Margin="0,4,0,0"
+                                   FontSize="11" Foreground="#FF89B4FA"/>
+                    </StackPanel>
+
+                    <!-- Display label -->
+                    <StackPanel Grid.Row="4">
+                        <TextBlock Text="Display Label" Style="{StaticResource DarkLabel}"/>
+                        <TextBox Style="{StaticResource DarkTextBox}"
+                                 Text="{Binding SelectedPlace.Label, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                    </StackPanel>
+
+                    <!-- Color -->
+                    <StackPanel Grid.Row="6">
+                        <TextBlock Text="Row Color" Style="{StaticResource DarkLabel}"/>
+                        <StackPanel Orientation="Horizontal">
+                            <Border x:Name="ColorSwatch"
+                                    Width="60" Height="30"
+                                    CornerRadius="4"
+                                    Margin="0,0,10,0"
+                                    Background="{Binding SelectedPlace.ColorBrush}"
+                                    Cursor="Hand"
+                                    MouseLeftButtonDown="ColorSwatch_Click"
+                                    ToolTip="Click to change color"/>
+                            <Button Content="Change…"
+                                    Style="{StaticResource SubtleButton}"
+                                    Padding="10,5"
+                                    Click="ColorSwatch_Click"/>
+                            <TextBlock x:Name="ColorHexLabel"
+                                       Margin="10,0,0,0"
+                                       VerticalAlignment="Center"
+                                       Foreground="#FF6C7086"
+                                       FontSize="12"/>
+                        </StackPanel>
+                    </StackPanel>
+
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- ── Global settings strip ── -->
+        <Border Grid.Row="1" Background="#FF1E1E2E" Margin="16,12,16,0" CornerRadius="6" Padding="16,12">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="24"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Font size -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="Font Size:" Foreground="#FFA6ADC8" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                    <Slider x:Name="FontSizeSlider"
+                            Width="140"
+                            Minimum="10" Maximum="36"
+                            Value="{Binding FontSizeValue, Mode=TwoWay}"
+                            TickFrequency="1" IsSnapToTickEnabled="True"
+                            VerticalAlignment="Center"/>
+                    <TextBlock Margin="8,0,0,0"
+                               VerticalAlignment="Center"
+                               Foreground="#FF89B4FA"
+                               FontWeight="SemiBold">
+                        <TextBlock.Text>
+                            <Binding Path="FontSizeValue" StringFormat="{}{0}px"/>
+                        </TextBlock.Text>
+                    </TextBlock>
+                </StackPanel>
+
+                <!-- Checkboxes -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal">
+                    <CheckBox x:Name="AutoStartCheck"
+                              Content="Auto-start on login"
+                              Foreground="#FFCDD6F4"
+                              IsChecked="{Binding AutoStartEnabled, Mode=TwoWay}"
+                              VerticalAlignment="Center"
+                              Margin="0,0,20,0"/>
+                    <CheckBox x:Name="EmbedCheck"
+                              Content="Embed in wallpaper layer"
+                              Foreground="#FFCDD6F4"
+                              IsChecked="{Binding EmbedInWallpaper, Mode=TwoWay}"
+                              VerticalAlignment="Center"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- ── OK / Cancel ── -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal"
+                    HorizontalAlignment="Right"
+                    Margin="16,10,16,14">
+            <Button Content="Cancel" Style="{StaticResource SubtleButton}"
+                    Margin="0,0,8,0" Click="Cancel_Click"/>
+            <Button Content="Save"   Style="{StaticResource AccentButton}"
+                    Click="Save_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>

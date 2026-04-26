@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dotnet build *)",
+      "Bash(mkdir -p \"c:/opt/projects/projects-c#/win-widget-time/Assets\")",
+      "Bash(mv \"c:/opt/projects/projects-c#/win-widget-time/landen_labs.mp4\" \"c:/opt/projects/projects-c#/win-widget-time/Assets/landen_labs.mp4\")"
+    ]
+  }
+}
