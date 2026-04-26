@@ -35,7 +35,7 @@
         <StackPanel Grid.Row="2">
             <TextBlock Text="🕐  WinWidgetTime" FontSize="22" FontWeight="Bold"
                        Foreground="#FF7AA2F7"/>
-            <TextBlock Text="v1.0  ·  World clock desktop widget"
+            <TextBlock x:Name="VersionText"
                        Foreground="#FF6C7086" FontSize="12" Margin="0,4,0,0"/>
         </StackPanel>
 

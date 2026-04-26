@@ -1,6 +1,7 @@
 // Copyright (c) 2026 LanDen Labs - Dennis Lang
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 using System.Windows;
 using System.Windows.Navigation;
 
@@ -12,6 +13,11 @@ public partial class AboutWindow : Window
     {
         InitializeComponent();
         Topmost = true;
+
+        var version = Assembly.GetExecutingAssembly()
+                               .GetName().Version?.ToString() ?? "?";
+        VersionText.Text = $"v{version}  ·  World clock desktop widget";
+
         var mp4 = Path.Combine(AppContext.BaseDirectory, "Assets", "landen_labs.mp4");
         if (File.Exists(mp4))
         {
