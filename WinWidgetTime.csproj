@@ -7,10 +7,10 @@
     <UseWPF>true</UseWPF>
     <AssemblyName>WinWidgetTime</AssemblyName>
     <RootNamespace>WinWidgetTime</RootNamespace>
-    <Version>6.04.26</Version>
-    <AssemblyVersion>6.04.26</AssemblyVersion>
-    <FileVersion>6.04.26</FileVersion>
-    <Copyright>Copyright © 2026 LanDen Labs</Copyright>
+    <Version>6.04.27</Version>
+    <AssemblyVersion>6.04.27</AssemblyVersion>
+    <FileVersion>6.04.27</FileVersion>
+    <Copyright>Copyright Â© 2026 LanDen Labs</Copyright>
     <Company>LanDen Labs</Company>
     <Product>WinWidgetTime</Product>
     <Description>World clock desktop widget</Description>
