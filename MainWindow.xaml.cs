@@ -22,8 +22,16 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-        Left = App.Settings.PositionX;
-        Top  = App.Settings.PositionY;
+
+        var (x, y) = MonitorService.GetPosition(App.Settings);
+        (x, y) = MonitorService.ClampToScreen(x, y);
+
+        // Keep settings in sync so OnSourceInitialized picks up the validated position
+        App.Settings.PositionX = x;
+        App.Settings.PositionY = y;
+
+        Left = x;
+        Top  = y;
 
         LoadItems();
 
@@ -81,17 +89,16 @@ public partial class MainWindow : Window
 
     // ── Controls ────────────────────────────────────────────────────────────
 
-    private void Settings_Click(object sender, RoutedEventArgs e)
+    public void OpenSettings()
     {
-        var win = new SettingsWindow();
-        win.ShowDialog();
-
-        // Always reload in case user saved changes
+        new SettingsWindow().ShowDialog();
         LoadItems();
     }
 
-    private void About_Click(object sender, RoutedEventArgs e)
-        => new AboutWindow().ShowDialog();
+    public void OpenAbout() => new AboutWindow().ShowDialog();
+
+    private void Settings_Click(object sender, RoutedEventArgs e) => OpenSettings();
+    private void About_Click(object sender, RoutedEventArgs e)    => OpenAbout();
 
     private void Exit_Click(object sender, RoutedEventArgs e)
         => Application.Current.Shutdown();
@@ -143,16 +150,14 @@ public partial class MainWindow : Window
         if (_isEmbedded)
         {
             var bounds = DesktopService.GetWindowBounds(this);
-            App.Settings.PositionX = bounds.Left;
-            App.Settings.PositionY = bounds.Top;
+            MonitorService.SavePosition(App.Settings, bounds.Left, bounds.Top);
             SettingsService.Save(App.Settings);
         }
     }
 
     private void SavePosition()
     {
-        App.Settings.PositionX = Left;
-        App.Settings.PositionY = Top;
+        MonitorService.SavePosition(App.Settings, Left, Top);
         SettingsService.Save(App.Settings);
     }
 }

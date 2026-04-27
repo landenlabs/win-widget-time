@@ -9,6 +9,7 @@ namespace WinWidgetTime;
 public partial class App : Application
 {
     private static Mutex? _mutex;
+    private TrayIconService? _trayIcon;
     public static AppSettings Settings { get; private set; } = new();
 
     protected override void OnStartup(StartupEventArgs e)
@@ -25,11 +26,20 @@ public partial class App : Application
         }
 
         Settings = SettingsService.Load();
-        new MainWindow().Show();
+        var mainWindow = new MainWindow();
+
+        _trayIcon = new TrayIconService(
+            onSettings: mainWindow.OpenSettings,
+            onAbout:    mainWindow.OpenAbout,
+            onExit:     Shutdown
+        );
+
+        mainWindow.Show();
     }
 
     protected override void OnExit(ExitEventArgs e)
     {
+        _trayIcon?.Dispose();
         _mutex?.ReleaseMutex();
         _mutex?.Dispose();
         base.OnExit(e);
