@@ -5,7 +5,8 @@
       "Bash(mkdir -p \"c:/opt/projects/projects-c#/win-widget-time/Assets\")",
       "Bash(mv \"c:/opt/projects/projects-c#/win-widget-time/landen_labs.mp4\" \"c:/opt/projects/projects-c#/win-widget-time/Assets/landen_labs.mp4\")",
       "Bash(xargs grep *)",
-      "Bash(grep -r \"Screen\\\\|Monitor\\\\|Display\\\\|SystemInformation\\\\|Bounds\" /c/opt/projects/projects-c#/win-widget-time --include=\"*.cs\" ! -path \"*/obj/*\")"
+      "Bash(grep -r \"Screen\\\\|Monitor\\\\|Display\\\\|SystemInformation\\\\|Bounds\" /c/opt/projects/projects-c#/win-widget-time --include=\"*.cs\" ! -path \"*/obj/*\")",
+      "Bash(del MainWindow.xaml MainWindow.xaml.cs)"
     ]
   }
 }

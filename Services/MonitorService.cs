@@ -22,12 +22,12 @@ public static class MonitorService
     /// Returns the saved position for the current monitor config, falling back to
     /// the legacy PositionX/Y if no per-monitor entry exists.
     /// </summary>
-    public static (double X, double Y) GetPosition(AppSettings settings)
+    public static (double X, double Y) GetPosition(WidgetSettings widget)
     {
         var key = GetFingerprint();
-        if (settings.MonitorPositions.TryGetValue(key, out var pos))
+        if (widget.MonitorPositions.TryGetValue(key, out var pos))
             return (pos.X, pos.Y);
-        return (settings.PositionX, settings.PositionY);
+        return (widget.PositionX, widget.PositionY);
     }
 
     /// <summary>
@@ -50,10 +50,10 @@ public static class MonitorService
     /// Persists (x, y) to both the legacy fields and the per-monitor dictionary.
     /// Caller is responsible for calling SettingsService.Save afterwards.
     /// </summary>
-    public static void SavePosition(AppSettings settings, double x, double y)
+    public static void SavePosition(WidgetSettings widget, double x, double y)
     {
-        settings.PositionX = x;
-        settings.PositionY = y;
-        settings.MonitorPositions[GetFingerprint()] = new ScreenPosition { X = x, Y = y };
+        widget.PositionX = x;
+        widget.PositionY = y;
+        widget.MonitorPositions[GetFingerprint()] = new ScreenPosition { X = x, Y = y };
     }
 }

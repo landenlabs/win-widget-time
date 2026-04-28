@@ -8,12 +8,14 @@ using System.Windows.Input;
 using System.Windows.Media;
 using WinWidgetTime.Models;
 using WinWidgetTime.Services;
-using MainWin = WinWidgetTime.MainWindow;
 
 namespace WinWidgetTime.Windows;
 
 public partial class SettingsWindow : Window, INotifyPropertyChanged
 {
+    private readonly WidgetSettings _widget;
+    private readonly WidgetWindow? _livePreviewTarget;
+
     // ── Bindable properties ──────────────────────────────────────────────────
 
     public ObservableCollection<PlaceEntry> Places { get; } = [];
@@ -33,11 +35,18 @@ public partial class SettingsWindow : Window, INotifyPropertyChanged
 
     public bool HasSelectedPlace => _selectedPlace != null;
 
+    private string _widgetName = "";
+    public string WidgetName
+    {
+        get => _widgetName;
+        set { _widgetName = value; OnPropertyChanged(); }
+    }
+
     private int _fontSizeValue;
     public int FontSizeValue
     {
         get => _fontSizeValue;
-        set { _fontSizeValue = value; OnPropertyChanged(); GetMainWindow()?.ApplyFontSize(value); }
+        set { _fontSizeValue = value; OnPropertyChanged(); _livePreviewTarget?.ApplyFontSize(value); }
     }
 
     private bool _autoStartEnabled;
@@ -92,30 +101,33 @@ public partial class SettingsWindow : Window, INotifyPropertyChanged
 
     // ── Constructor ──────────────────────────────────────────────────────────
 
-    public SettingsWindow()
+    public SettingsWindow(WidgetSettings widget, WidgetWindow? livePreviewTarget = null)
     {
+        _widget = widget;
+        _livePreviewTarget = livePreviewTarget;
+
         InitializeComponent();
         Topmost = true;
 
         // Snapshot originals so Cancel can restore the live preview
-        _origFontSize         = App.Settings.FontSize;
-        _origBgColor          = App.Settings.BackgroundColor;
-        _origBgOpacityPercent = (int)Math.Round(App.Settings.BackgroundOpacity * 100);
+        _origFontSize         = _widget.FontSize;
+        _origBgColor          = _widget.BackgroundColor;
+        _origBgOpacityPercent = (int)Math.Round(_widget.BackgroundOpacity * 100);
 
         // Load working copies
-        foreach (var p in App.Settings.Places)
+        foreach (var p in _widget.Places)
             Places.Add(p.Clone());
 
-        FontSizeValue   = App.Settings.FontSize;
-        AutoStartEnabled = AutoStartService.IsEnabled();
-        EmbedInWallpaper = App.Settings.EmbedInWallpaper;
-        _bgColorHex      = App.Settings.BackgroundColor;
-        _bgOpacityPercent = (int)Math.Round(App.Settings.BackgroundOpacity * 100);
+        WidgetName        = _widget.Name;
+        FontSizeValue     = _widget.FontSize;
+        AutoStartEnabled  = AutoStartService.IsEnabled();
+        EmbedInWallpaper  = _widget.EmbedInWallpaper;
+        _bgColorHex       = _widget.BackgroundColor;
+        _bgOpacityPercent = (int)Math.Round(_widget.BackgroundOpacity * 100);
         OnPropertyChanged(nameof(BgColorHex));
         OnPropertyChanged(nameof(BgColorBrush));
         OnPropertyChanged(nameof(BgOpacityPercent));
 
-        // Subscribe to SelectedPlace.PropertyChanged to keep edit panel in sync
         Places.CollectionChanged += (_, _) => { };
 
         if (Places.Count > 0)
@@ -249,7 +261,6 @@ public partial class SettingsWindow : Window, INotifyPropertyChanged
 
         _selectedPlace.TimeZoneId = result.IanaTimeZoneId;
 
-        // Auto-fill label if it's still the default
         if (string.IsNullOrWhiteSpace(_selectedPlace.Label) || _selectedPlace.Label == "New City")
             _selectedPlace.Label = _selectedPlace.CityName;
 
@@ -259,10 +270,8 @@ public partial class SettingsWindow : Window, INotifyPropertyChanged
 
     // ── Live preview helpers ─────────────────────────────────────────────────
 
-    private static MainWin? GetMainWindow() => Application.Current.MainWindow as MainWin;
-
     private void LivePreviewBackground()
-        => GetMainWindow()?.ApplyBackground(_bgColorHex, _bgOpacityPercent / 100.0);
+        => _livePreviewTarget?.ApplyBackground(_bgColorHex, _bgOpacityPercent / 100.0);
 
     // ── Background color picker ──────────────────────────────────────────────
 
@@ -306,7 +315,6 @@ public partial class SettingsWindow : Window, INotifyPropertyChanged
 
     private void PlacesList_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
-        // Walk up from the click source to find a drag handle element
         var element = e.OriginalSource as DependencyObject;
         while (element != null && element != PlacesList)
         {
@@ -379,11 +387,12 @@ public partial class SettingsWindow : Window, INotifyPropertyChanged
 
     private void Save_Click(object sender, RoutedEventArgs e)
     {
-        App.Settings.Places = [.. Places];
-        App.Settings.FontSize = FontSizeValue;
-        App.Settings.EmbedInWallpaper = EmbedInWallpaper;
-        App.Settings.BackgroundColor = _bgColorHex;
-        App.Settings.BackgroundOpacity = _bgOpacityPercent / 100.0;
+        _widget.Name             = WidgetName.Trim().Length > 0 ? WidgetName.Trim() : _widget.Name;
+        _widget.Places           = [.. Places];
+        _widget.FontSize         = FontSizeValue;
+        _widget.EmbedInWallpaper = EmbedInWallpaper;
+        _widget.BackgroundColor  = _bgColorHex;
+        _widget.BackgroundOpacity = _bgOpacityPercent / 100.0;
 
         AutoStartService.SetEnabled(AutoStartEnabled);
         App.Settings.AutoStart = AutoStartEnabled;
@@ -395,9 +404,8 @@ public partial class SettingsWindow : Window, INotifyPropertyChanged
 
     private void Cancel_Click(object sender, RoutedEventArgs e)
     {
-        // Revert any live-preview changes
-        GetMainWindow()?.ApplyFontSize(_origFontSize);
-        GetMainWindow()?.ApplyBackground(_origBgColor, _origBgOpacityPercent / 100.0);
+        _livePreviewTarget?.ApplyFontSize(_origFontSize);
+        _livePreviewTarget?.ApplyBackground(_origBgColor, _origBgOpacityPercent / 100.0);
         DialogResult = false;
         Close();
     }

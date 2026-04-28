@@ -4,35 +4,86 @@ using Icon   = System.Drawing.Icon;
 using Pen    = System.Drawing.Pen;
 using System.Drawing.Drawing2D;
 using System.Windows.Forms;
+using WinWidgetTime.Models;
 
 namespace WinWidgetTime.Services;
 
 public sealed class TrayIconService : IDisposable
 {
     private readonly NotifyIcon _notifyIcon;
+    private readonly ContextMenuStrip _menu;
 
-    public TrayIconService(Action onSettings, Action onAbout, Action onExit)
+    // Static separators/items rebuilt on Opening
+    private readonly ToolStripMenuItem _addWidgetItem;
+    private readonly ToolStripSeparator _topSep  = new();
+    private readonly ToolStripSeparator _botSep  = new();
+    private readonly ToolStripMenuItem _aboutItem;
+    private readonly ToolStripMenuItem _exitItem;
+
+    private readonly Func<IReadOnlyList<WidgetSettings>> _getWidgets;
+    private readonly Action<string> _onWidgetSettings;
+    private readonly Action<string> _onWidgetRemove;
+
+    public TrayIconService(
+        Action onAddWidget,
+        Func<IReadOnlyList<WidgetSettings>> getWidgets,
+        Action<string> onWidgetSettings,
+        Action<string> onWidgetRemove,
+        Action onAbout,
+        Action onExit)
     {
-        var menu = new ContextMenuStrip();
-        menu.Items.Add("Settings", null, (_, _) => UIInvoke(onSettings));
-        menu.Items.Add("About",    null, (_, _) => UIInvoke(onAbout));
-        menu.Items.Add(new ToolStripSeparator());
-        menu.Items.Add("Exit",     null, (_, _) => UIInvoke(onExit));
+        _getWidgets       = getWidgets;
+        _onWidgetSettings = onWidgetSettings;
+        _onWidgetRemove   = onWidgetRemove;
+
+        _addWidgetItem = new ToolStripMenuItem("+ Add Widget", null, (_, _) => UIInvoke(onAddWidget));
+        _aboutItem     = new ToolStripMenuItem("About",        null, (_, _) => UIInvoke(onAbout));
+        _exitItem      = new ToolStripMenuItem("Exit",         null, (_, _) => UIInvoke(onExit));
+
+        _menu = new ContextMenuStrip();
+        _menu.Opening += OnMenuOpening;
 
         _notifyIcon = new NotifyIcon
         {
             Text             = "WinWidgetTime",
             Icon             = BuildIcon(),
-            ContextMenuStrip = menu,
+            ContextMenuStrip = _menu,
             Visible          = true
         };
-        _notifyIcon.DoubleClick += (_, _) => UIInvoke(onSettings);
+        _notifyIcon.DoubleClick += (_, _) => UIInvoke(() => onWidgetSettings(getWidgets().FirstOrDefault()?.Id ?? ""));
     }
 
     public void Dispose()
     {
         _notifyIcon.Visible = false;
         _notifyIcon.Dispose();
+        _menu.Dispose();
+    }
+
+    private void OnMenuOpening(object? sender, System.ComponentModel.CancelEventArgs e)
+    {
+        _menu.Items.Clear();
+        _menu.Items.Add(_addWidgetItem);
+        _menu.Items.Add(_topSep);
+
+        var widgets = _getWidgets();
+        foreach (var widget in widgets)
+        {
+            var id = widget.Id;
+            var name = widget.Name;
+            var widgetMenu = new ToolStripMenuItem(name);
+            widgetMenu.DropDownItems.Add("Settings", null, (_, _) => UIInvoke(() => _onWidgetSettings(id)));
+            widgetMenu.DropDownItems.Add("Remove",   null, (_, _) => UIInvoke(() => _onWidgetRemove(id)));
+
+            // Disable Remove when it's the only widget
+            ((ToolStripMenuItem)widgetMenu.DropDownItems[1]).Enabled = widgets.Count > 1;
+
+            _menu.Items.Add(widgetMenu);
+        }
+
+        _menu.Items.Add(_botSep);
+        _menu.Items.Add(_aboutItem);
+        _menu.Items.Add(_exitItem);
     }
 
     // Dispatch to WPF UI thread so callers don't have to think about it.

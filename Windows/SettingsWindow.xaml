@@ -276,6 +276,15 @@
                            Foreground="#FF89B4FA" FontWeight="SemiBold" FontSize="12"
                            Margin="0,0,0,8"/>
 
+                <!-- Widget name row -->
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,0,8">
+                    <TextBlock Text="Widget Name:" Foreground="#FFA6ADC8" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                    <TextBox x:Name="WidgetNameBox"
+                             Style="{StaticResource DarkTextBox}"
+                             Width="200"
+                             Text="{Binding WidgetName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                </StackPanel>
+
                 <!-- Appearance controls row -->
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,0,8">
 

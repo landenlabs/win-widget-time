@@ -9,16 +9,6 @@ public class ScreenPosition
 
 public class AppSettings
 {
-    public List<PlaceEntry> Places { get; set; } = new();
-    public int FontSize { get; set; } = 18;
-    public double PositionX { get; set; } = 50;
-    public double PositionY { get; set; } = 200;
-    // Per-monitor-config positions, keyed by monitor fingerprint
-    public Dictionary<string, ScreenPosition> MonitorPositions { get; set; } = new();
+    public List<WidgetSettings> Widgets { get; set; } = new();
     public bool AutoStart { get; set; } = false;
-    public bool EmbedInWallpaper { get; set; } = true;
-    public string DateFormat { get; set; } = "ddd MMM dd";
-    public string TimeFormat { get; set; } = "hh:mm:ss tt";
-    public string BackgroundColor { get; set; } = "#000000";
-    public double BackgroundOpacity { get; set; } = 0.80;
 }

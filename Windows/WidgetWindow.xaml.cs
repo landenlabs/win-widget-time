@@ -3,32 +3,37 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
+using WinWidgetTime.Models;
 using WinWidgetTime.Services;
 using WinWidgetTime.ViewModels;
-using WinWidgetTime.Windows;
 
-namespace WinWidgetTime;
+namespace WinWidgetTime.Windows;
 
-public partial class MainWindow : Window
+public partial class WidgetWindow : Window
 {
+    private readonly WidgetSettings _widget;
     private readonly DispatcherTimer _timer;
     private List<TimeDisplayItem> _items = [];
     private bool _isEmbedded;
 
     // Dragging state
     private bool _isDragging;
-    private System.Windows.Point _dragOffset; // widget-relative offset at drag start (embedded: pixels)
+    private System.Windows.Point _dragOffset;
 
-    public MainWindow()
+    public string WidgetId => _widget.Id;
+
+    public event Action<WidgetWindow>? RemoveRequested;
+
+    public WidgetWindow(WidgetSettings widget)
     {
+        _widget = widget;
         InitializeComponent();
 
-        var (x, y) = MonitorService.GetPosition(App.Settings);
+        var (x, y) = MonitorService.GetPosition(_widget);
         (x, y) = MonitorService.ClampToScreen(x, y);
 
-        // Keep settings in sync so OnSourceInitialized picks up the validated position
-        App.Settings.PositionX = x;
-        App.Settings.PositionY = y;
+        _widget.PositionX = x;
+        _widget.PositionY = y;
 
         Left = x;
         Top  = y;
@@ -44,14 +49,14 @@ public partial class MainWindow : Window
     {
         base.OnSourceInitialized(e);
 
-        ApplyFontSize(App.Settings.FontSize);
-        ApplyBackground(App.Settings.BackgroundColor, App.Settings.BackgroundOpacity);
+        ApplyFontSize(_widget.FontSize);
+        ApplyBackground(_widget.BackgroundColor, _widget.BackgroundOpacity);
 
-        if (App.Settings.EmbedInWallpaper)
+        if (_widget.EmbedInWallpaper)
         {
             _isEmbedded = DesktopService.EmbedInWallpaper(this);
             if (_isEmbedded)
-                DesktopService.MoveEmbeddedWindow(this, (int)App.Settings.PositionX, (int)App.Settings.PositionY);
+                DesktopService.MoveEmbeddedWindow(this, (int)_widget.PositionX, (int)_widget.PositionY);
             else
                 DesktopService.SetAlwaysOnBottom(this);
         }
@@ -63,10 +68,15 @@ public partial class MainWindow : Window
 
     public void LoadItems()
     {
-        _items = App.Settings.Places.Select(p => new TimeDisplayItem(p)).ToList();
+        _items = _widget.Places.Select(p => new TimeDisplayItem(p)).ToList();
         TimeList.ItemsSource = _items;
-        ApplyFontSize(App.Settings.FontSize);
-        ApplyBackground(App.Settings.BackgroundColor, App.Settings.BackgroundOpacity);
+        TitleText.Text = $"🕐 {_widget.Name}";
+        ApplyFontSize(_widget.FontSize);
+        ApplyBackground(_widget.BackgroundColor, _widget.BackgroundOpacity);
+
+        // Disable "Remove Widget" when it would eliminate the last widget
+        if (RemoveMenuItem != null)
+            RemoveMenuItem.IsEnabled = App.Settings.Widgets.Count > 1;
     }
 
     public void ApplyFontSize(int size) => TimeList.FontSize = size;
@@ -84,21 +94,31 @@ public partial class MainWindow : Window
     private void Tick()
     {
         foreach (var item in _items)
-            item.Update(App.Settings.DateFormat, App.Settings.TimeFormat);
+            item.Update(_widget.DateFormat, _widget.TimeFormat);
     }
 
     // ── Controls ────────────────────────────────────────────────────────────
 
     public void OpenSettings()
     {
-        new SettingsWindow().ShowDialog();
-        LoadItems();
+        var dlg = new SettingsWindow(_widget, livePreviewTarget: this);
+        if (dlg.ShowDialog() == true)
+            LoadItems();
+        else
+        {
+            // Revert any live-preview changes that were not saved
+            ApplyFontSize(_widget.FontSize);
+            ApplyBackground(_widget.BackgroundColor, _widget.BackgroundOpacity);
+        }
     }
 
     public void OpenAbout() => new AboutWindow().ShowDialog();
 
     private void Settings_Click(object sender, RoutedEventArgs e) => OpenSettings();
     private void About_Click(object sender, RoutedEventArgs e)    => OpenAbout();
+
+    private void Remove_Click(object sender, RoutedEventArgs e)
+        => RemoveRequested?.Invoke(this);
 
     private void Exit_Click(object sender, RoutedEventArgs e)
         => Application.Current.Shutdown();
@@ -125,7 +145,6 @@ public partial class MainWindow : Window
         }
         else
         {
-            // DragMove handles everything for top-level windows
             DragMove();
             SavePosition();
         }
@@ -150,14 +169,14 @@ public partial class MainWindow : Window
         if (_isEmbedded)
         {
             var bounds = DesktopService.GetWindowBounds(this);
-            MonitorService.SavePosition(App.Settings, bounds.Left, bounds.Top);
+            MonitorService.SavePosition(_widget, bounds.Left, bounds.Top);
             SettingsService.Save(App.Settings);
         }
     }
 
     private void SavePosition()
     {
-        MonitorService.SavePosition(App.Settings, Left, Top);
+        MonitorService.SavePosition(_widget, Left, Top);
         SettingsService.Save(App.Settings);
     }
 }
