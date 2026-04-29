@@ -346,6 +346,12 @@
                               Content="Embed in wallpaper layer"
                               Foreground="#FFCDD6F4"
                               IsChecked="{Binding EmbedInWallpaper, Mode=TwoWay}"
+                              VerticalAlignment="Center"
+                              Margin="0,0,24,0"/>
+                    <CheckBox x:Name="TitleBarCheck"
+                              Content="Show title bar"
+                              Foreground="#FFCDD6F4"
+                              IsChecked="{Binding ShowTitleBar, Mode=TwoWay}"
                               VerticalAlignment="Center"/>
                 </StackPanel>
 

@@ -42,7 +42,7 @@
         <StackPanel>
 
             <!-- Header: title on left, icon buttons on right -->
-            <Grid Height="22" Margin="0,0,0,5">
+            <Grid x:Name="TitleBarGrid" Height="22" Margin="0,0,0,5">
                 <TextBlock x:Name="TitleText"
                            Text="🕐 Widget"
                            Foreground="#66FFFFFF"
@@ -66,7 +66,7 @@
                 </StackPanel>
             </Grid>
 
-            <Rectangle Height="1" Fill="#33FFFFFF" Margin="0,0,0,6"/>
+            <Rectangle x:Name="TitleBarSeparator" Height="1" Fill="#33FFFFFF" Margin="0,0,0,6"/>
 
             <!-- Time rows -->
             <ItemsControl x:Name="TimeList" Grid.IsSharedSizeScope="True">

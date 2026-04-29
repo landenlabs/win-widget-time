@@ -51,6 +51,7 @@ public partial class WidgetWindow : Window
 
         ApplyFontSize(_widget.FontSize);
         ApplyBackground(_widget.BackgroundColor, _widget.BackgroundOpacity);
+        ApplyShowTitleBar(_widget.ShowTitleBar);
 
         if (_widget.EmbedInWallpaper)
         {
@@ -73,6 +74,7 @@ public partial class WidgetWindow : Window
         TitleText.Text = $"🕐 {_widget.Name}";
         ApplyFontSize(_widget.FontSize);
         ApplyBackground(_widget.BackgroundColor, _widget.BackgroundOpacity);
+        ApplyShowTitleBar(_widget.ShowTitleBar);
 
         // Disable "Remove Widget" when it would eliminate the last widget
         if (RemoveMenuItem != null)
@@ -89,6 +91,12 @@ public partial class WidgetWindow : Window
             WidgetBorder.Background = new SolidColorBrush(color) { Opacity = opacity };
         }
         catch { }
+    }
+
+    public void ApplyShowTitleBar(bool show)
+    {
+        TitleBarGrid.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
+        TitleBarSeparator.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
     }
 
     private void Tick()

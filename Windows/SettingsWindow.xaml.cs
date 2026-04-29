@@ -63,6 +63,13 @@ public partial class SettingsWindow : Window, INotifyPropertyChanged
         set { _embedInWallpaper = value; OnPropertyChanged(); }
     }
 
+    private bool _showTitleBar;
+    public bool ShowTitleBar
+    {
+        get => _showTitleBar;
+        set { _showTitleBar = value; OnPropertyChanged(); }
+    }
+
     private string _bgColorHex = "#000000";
     public string BgColorHex
     {
@@ -122,6 +129,7 @@ public partial class SettingsWindow : Window, INotifyPropertyChanged
         FontSizeValue     = _widget.FontSize;
         AutoStartEnabled  = AutoStartService.IsEnabled();
         EmbedInWallpaper  = _widget.EmbedInWallpaper;
+        ShowTitleBar      = _widget.ShowTitleBar;
         _bgColorHex       = _widget.BackgroundColor;
         _bgOpacityPercent = (int)Math.Round(_widget.BackgroundOpacity * 100);
         OnPropertyChanged(nameof(BgColorHex));
@@ -391,6 +399,7 @@ public partial class SettingsWindow : Window, INotifyPropertyChanged
         _widget.Places           = [.. Places];
         _widget.FontSize         = FontSizeValue;
         _widget.EmbedInWallpaper = EmbedInWallpaper;
+        _widget.ShowTitleBar     = ShowTitleBar;
         _widget.BackgroundColor  = _bgColorHex;
         _widget.BackgroundOpacity = _bgOpacityPercent / 100.0;
 
