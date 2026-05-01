@@ -102,7 +102,7 @@ public partial class WidgetWindow : Window
     private void Tick()
     {
         foreach (var item in _items)
-            item.Update(_widget.DateFormat, _widget.TimeFormat);
+            item.Update(_widget.DateTimeFormat);
     }
 
     // ── Controls ────────────────────────────────────────────────────────────

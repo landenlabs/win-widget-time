@@ -153,7 +153,7 @@
                 <Grid IsEnabled="{Binding HasSelectedPlace}">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="14"/>
+                        <RowDefinition Height="6"/>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="14"/>
                         <RowDefinition Height="Auto"/>
@@ -210,27 +210,26 @@
                     </StackPanel>
 
                     <!-- Color -->
-                    <StackPanel Grid.Row="6">
-                        <TextBlock Text="Row Color" Style="{StaticResource DarkLabel}"/>
-                        <StackPanel Orientation="Horizontal">
-                            <Border x:Name="ColorSwatch"
-                                    Width="60" Height="30"
-                                    CornerRadius="4"
-                                    Margin="0,0,10,0"
-                                    Background="{Binding SelectedPlace.ColorBrush}"
-                                    Cursor="Hand"
-                                    MouseLeftButtonDown="ColorSwatch_Click"
-                                    ToolTip="Click to change color"/>
-                            <Button Content="Change…"
-                                    Style="{StaticResource SubtleButton}"
-                                    Padding="10,5"
-                                    Click="ColorSwatch_Click"/>
-                            <TextBlock x:Name="ColorHexLabel"
-                                       Margin="10,0,0,0"
-                                       VerticalAlignment="Center"
-                                       Foreground="#FF6C7086"
-                                       FontSize="12"/>
-                        </StackPanel>
+                    <StackPanel Grid.Row="6" Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock Text="Row Color:" Foreground="#FFA6ADC8"
+                                   VerticalAlignment="Center" Margin="0,0,10,0"/>
+                        <Border x:Name="ColorSwatch"
+                                Width="50" Height="22"
+                                CornerRadius="4"
+                                Margin="0,0,8,0"
+                                Background="{Binding SelectedPlace.ColorBrush}"
+                                Cursor="Hand"
+                                MouseLeftButtonDown="ColorSwatch_Click"
+                                ToolTip="Click to change color"/>
+                        <Button Content="Change…"
+                                Style="{StaticResource SubtleButton}"
+                                Padding="10,4"
+                                Click="ColorSwatch_Click"/>
+                        <TextBlock x:Name="ColorHexLabel"
+                                   Margin="10,0,0,0"
+                                   VerticalAlignment="Center"
+                                   Foreground="#FF6C7086"
+                                   FontSize="12"/>
                     </StackPanel>
 
                     <!-- Date/Time Format -->
@@ -283,6 +282,25 @@
                              Style="{StaticResource DarkTextBox}"
                              Width="200"
                              Text="{Binding WidgetName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                </StackPanel>
+
+                <!-- Global date/time format row -->
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,0,8">
+                    <TextBlock Text="Format:" Foreground="#FFA6ADC8" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                    <TextBox x:Name="GlobalFormatBox"
+                             Style="{StaticResource DarkTextBox}"
+                             Width="260"
+                             FontFamily="Consolas, Courier New"
+                             Text="{Binding GlobalFormat, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             ToolTip="Date/time format (e.g. ddd MMM dd  hh:mm:ss tt)"/>
+                    <Button x:Name="GlobalFormatHelpBtn"
+                            Content="?"
+                            Style="{StaticResource SubtleButton}"
+                            Padding="9,5"
+                            FontWeight="Bold"
+                            Margin="8,0,0,0"
+                            ToolTip="Show format token reference"
+                            Click="FormatHelp_Click"/>
                 </StackPanel>
 
                 <!-- Appearance controls row -->

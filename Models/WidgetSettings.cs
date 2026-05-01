@@ -13,6 +13,12 @@ public class WidgetSettings
     public bool EmbedInWallpaper { get; set; } = true;
     public string DateFormat { get; set; } = "ddd MMM dd";
     public string TimeFormat { get; set; } = "hh:mm:ss tt";
+    private string _dateTimeFormat = "";
+    public string DateTimeFormat
+    {
+        get => string.IsNullOrEmpty(_dateTimeFormat) ? DateFormat + "  " + TimeFormat : _dateTimeFormat;
+        set => _dateTimeFormat = value;
+    }
     public string BackgroundColor { get; set; } = "#000000";
     public double BackgroundOpacity { get; set; } = 0.80;
     public bool ShowTitleBar { get; set; } = true;

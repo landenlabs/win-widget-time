@@ -6,7 +6,10 @@
       "Bash(mv \"c:/opt/projects/projects-c#/win-widget-time/landen_labs.mp4\" \"c:/opt/projects/projects-c#/win-widget-time/Assets/landen_labs.mp4\")",
       "Bash(xargs grep *)",
       "Bash(grep -r \"Screen\\\\|Monitor\\\\|Display\\\\|SystemInformation\\\\|Bounds\" /c/opt/projects/projects-c#/win-widget-time --include=\"*.cs\" ! -path \"*/obj/*\")",
-      "Bash(del MainWindow.xaml MainWindow.xaml.cs)"
+      "Bash(del MainWindow.xaml MainWindow.xaml.cs)",
+      "Bash(Get-ChildItem -Recurse -File)",
+      "Bash(Select-Object -First 50)",
+      "Bash(Format-Table FullName)"
     ]
   }
 }

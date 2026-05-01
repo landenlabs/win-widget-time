@@ -47,7 +47,7 @@ public class TimeDisplayItem : INotifyPropertyChanged
         private set { _timePart = value; OnPropertyChanged(); }
     }
 
-    public void Update(string dateFormat = "ddd MMM dd", string timeFormat = "hh:mm:ss tt")
+    public void Update(string globalFormat = "ddd MMM dd  hh:mm:ss tt")
     {
         // Invalidate color brush in case settings changed
         _colorBrush = null;
@@ -60,22 +60,14 @@ public class TimeDisplayItem : INotifyPropertyChanged
                 ? TimeZoneInfo.Local
                 : TZConvert.GetTimeZoneInfo(_entry.TimeZoneId);
             var now = TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, tzi);
-            if (!string.IsNullOrWhiteSpace(_entry.DateTimeFormat))
-            {
-                DatePart = "";
-                TimePart = now.ToString(_entry.DateTimeFormat);
-            }
-            else
-            {
-                DatePart = now.ToString(dateFormat);
-                TimePart = now.ToString(timeFormat);
-            }
+            var fmt = !string.IsNullOrWhiteSpace(_entry.DateTimeFormat) ? _entry.DateTimeFormat : globalFormat;
+            DatePart = "";
+            TimePart = now.ToString(fmt);
         }
         catch
         {
-            var now = DateTimeOffset.UtcNow;
-            DatePart = now.ToString("ddd MMM dd");
-            TimePart = now.ToString("hh:mm:ss tt");
+            DatePart = "";
+            TimePart = DateTimeOffset.UtcNow.ToString("ddd MMM dd  hh:mm:ss tt");
         }
     }
 

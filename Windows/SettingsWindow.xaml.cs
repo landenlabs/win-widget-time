@@ -70,6 +70,13 @@ public partial class SettingsWindow : Window, INotifyPropertyChanged
         set { _showTitleBar = value; OnPropertyChanged(); }
     }
 
+    private string _globalFormat = "ddd MMM dd  hh:mm:ss tt";
+    public string GlobalFormat
+    {
+        get => _globalFormat;
+        set { _globalFormat = value; OnPropertyChanged(); }
+    }
+
     private string _bgColorHex = "#000000";
     public string BgColorHex
     {
@@ -127,6 +134,7 @@ public partial class SettingsWindow : Window, INotifyPropertyChanged
 
         WidgetName        = _widget.Name;
         FontSizeValue     = _widget.FontSize;
+        GlobalFormat      = _widget.DateTimeFormat;
         AutoStartEnabled  = AutoStartService.IsEnabled();
         EmbedInWallpaper  = _widget.EmbedInWallpaper;
         ShowTitleBar      = _widget.ShowTitleBar;
@@ -398,6 +406,7 @@ public partial class SettingsWindow : Window, INotifyPropertyChanged
         _widget.Name             = WidgetName.Trim().Length > 0 ? WidgetName.Trim() : _widget.Name;
         _widget.Places           = [.. Places];
         _widget.FontSize         = FontSizeValue;
+        _widget.DateTimeFormat   = GlobalFormat.Trim().Length > 0 ? GlobalFormat.Trim() : _widget.DateTimeFormat;
         _widget.EmbedInWallpaper = EmbedInWallpaper;
         _widget.ShowTitleBar     = ShowTitleBar;
         _widget.BackgroundColor  = _bgColorHex;
