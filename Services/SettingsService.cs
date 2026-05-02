@@ -41,7 +41,6 @@ public static class SettingsService
                         PositionX         = legacy.PositionX,
                         PositionY         = legacy.PositionY,
                         MonitorPositions  = legacy.MonitorPositions ?? new(),
-                        EmbedInWallpaper  = legacy.EmbedInWallpaper,
                         DateFormat        = legacy.DateFormat,
                         TimeFormat        = legacy.TimeFormat,
                         BackgroundColor   = legacy.BackgroundColor,

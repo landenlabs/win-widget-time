@@ -56,13 +56,6 @@ public partial class SettingsWindow : Window, INotifyPropertyChanged
         set { _autoStartEnabled = value; OnPropertyChanged(); }
     }
 
-    private bool _embedInWallpaper;
-    public bool EmbedInWallpaper
-    {
-        get => _embedInWallpaper;
-        set { _embedInWallpaper = value; OnPropertyChanged(); }
-    }
-
     private bool _showTitleBar;
     public bool ShowTitleBar
     {
@@ -71,11 +64,6 @@ public partial class SettingsWindow : Window, INotifyPropertyChanged
     }
 
     private string _globalFormat = "ddd MMM dd  hh:mm:ss tt";
-    public string GlobalFormat
-    {
-        get => _globalFormat;
-        set { _globalFormat = value; OnPropertyChanged(); }
-    }
 
     private string _bgColorHex = "#000000";
     public string BgColorHex
@@ -134,9 +122,8 @@ public partial class SettingsWindow : Window, INotifyPropertyChanged
 
         WidgetName        = _widget.Name;
         FontSizeValue     = _widget.FontSize;
-        GlobalFormat      = _widget.DateTimeFormat;
+        _globalFormat     = _widget.DateTimeFormat;
         AutoStartEnabled  = AutoStartService.IsEnabled();
-        EmbedInWallpaper  = _widget.EmbedInWallpaper;
         ShowTitleBar      = _widget.ShowTitleBar;
         _bgColorHex       = _widget.BackgroundColor;
         _bgOpacityPercent = (int)Math.Round(_widget.BackgroundOpacity * 100);
@@ -406,8 +393,7 @@ public partial class SettingsWindow : Window, INotifyPropertyChanged
         _widget.Name             = WidgetName.Trim().Length > 0 ? WidgetName.Trim() : _widget.Name;
         _widget.Places           = [.. Places];
         _widget.FontSize         = FontSizeValue;
-        _widget.DateTimeFormat   = GlobalFormat.Trim().Length > 0 ? GlobalFormat.Trim() : _widget.DateTimeFormat;
-        _widget.EmbedInWallpaper = EmbedInWallpaper;
+        _widget.DateTimeFormat   = _globalFormat.Trim().Length > 0 ? _globalFormat.Trim() : _widget.DateTimeFormat;
         _widget.ShowTitleBar     = ShowTitleBar;
         _widget.BackgroundColor  = _bgColorHex;
         _widget.BackgroundOpacity = _bgOpacityPercent / 100.0;

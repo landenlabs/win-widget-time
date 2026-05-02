@@ -9,7 +9,9 @@
       "Bash(del MainWindow.xaml MainWindow.xaml.cs)",
       "Bash(Get-ChildItem -Recurse -File)",
       "Bash(Select-Object -First 50)",
-      "Bash(Format-Table FullName)"
+      "Bash(Format-Table FullName)",
+      "Bash(git stash *)",
+      "Bash(Select-String \"error|Build\")"
     ]
   }
 }

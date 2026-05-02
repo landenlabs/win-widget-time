@@ -10,7 +10,7 @@ public class WidgetSettings
     public double PositionX { get; set; } = 50;
     public double PositionY { get; set; } = 200;
     public Dictionary<string, ScreenPosition> MonitorPositions { get; set; } = new();
-    public bool EmbedInWallpaper { get; set; } = true;
+    public bool EmbedInWallpaper => true;
     public string DateFormat { get; set; } = "ddd MMM dd";
     public string TimeFormat { get; set; } = "hh:mm:ss tt";
     private string _dateTimeFormat = "";
