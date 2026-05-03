@@ -14,7 +14,12 @@
       "Bash(Select-String \"error|Build\")",
       "Bash(Get-ChildItem -Path \"c:\\\\opt\\\\projects\\\\projects-c#\\\\win-widget-time\" -Recurse -Depth 3)",
       "Bash(Select-Object FullName, PSIsContainer)",
-      "Bash(Format-Table -AutoSize)"
+      "Bash(Format-Table -AutoSize)",
+      "Bash(Get-ChildItem -Path \"c:\\\\opt\\\\projects\\\\projects-c#\\\\win-widget-time\" -Recurse -Force)",
+      "Bash(Select-Object -First 100)",
+      "Bash(Format-Table Name, FullName, Extension)",
+      "PowerShell(Get-ChildItem -Path \"c:\\\\opt\\\\projects\\\\projects-c#\\\\win-widget-time\" -Force -Recurse -Depth 3 | Where-Object { $_.Extension -in @\\('.cs', '.xaml', '.xml', '.config'\\) } | Select-Object FullName | Sort-Object)",
+      "PowerShell(Get-ChildItem -Path \"c:\\\\opt\\\\projects\\\\projects-c#\\\\win-widget-time\" -Recurse -Depth 3 -Force | Where-Object { -not $_.PSIsContainer } | Where-Object { $_.Extension -in @\\('.ico', '.png', '.resx', '.rc'\\) } | Select-Object FullName)"
     ]
   }
 }

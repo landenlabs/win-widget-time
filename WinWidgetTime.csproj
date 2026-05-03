@@ -15,6 +15,7 @@
     <Company>LanDen Labs</Company>
     <Product>WinWidgetTime</Product>
     <Description>World clock desktop widget</Description>
+    <ApplicationIcon>time.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
     <Content Include="Assets\landen_labs.mp4">
