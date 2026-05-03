@@ -26,7 +26,8 @@
                Stretch="Uniform"
                Visibility="Collapsed"/>
         <MediaElement x:Name="LogoPlayer" Grid.Row="0"
-                      LoadedBehavior="Play"
+                      LoadedBehavior="Manual"
+                      UnloadedBehavior="Stop"
                       IsMuted="True"
                       Stretch="Uniform"
                       Visibility="Collapsed"/>

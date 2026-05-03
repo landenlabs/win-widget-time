@@ -9,6 +9,8 @@ namespace WinWidgetTime.Windows;
 
 public partial class AboutWindow : Window
 {
+    private bool _closing;
+
     public AboutWindow()
     {
         InitializeComponent();
@@ -21,8 +23,19 @@ public partial class AboutWindow : Window
         var mp4 = Path.Combine(AppContext.BaseDirectory, "Assets", "landen_labs.mp4");
         if (File.Exists(mp4))
         {
-            LogoPlayer.Source = new Uri(mp4);
+            LogoPlayer.MediaEnded += (_, _) =>
+            {
+                if (_closing) return;
+                try { LogoPlayer.Position = TimeSpan.Zero; LogoPlayer.Play(); }
+                catch { }
+            };
             LogoPlayer.Visibility = System.Windows.Visibility.Visible;
+            Loaded += (_, _) =>
+            {
+                if (_closing) return;
+                try { LogoPlayer.Source = new Uri(mp4); LogoPlayer.Play(); }
+                catch { }
+            };
         }
         else
         {
@@ -33,6 +46,14 @@ public partial class AboutWindow : Window
                 LogoFallback.Visibility = System.Windows.Visibility.Visible;
             }
         }
+    }
+
+    protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
+    {
+        _closing = true;
+        try { LogoPlayer.Stop(); } catch { }
+        LogoPlayer.Source = null;
+        base.OnClosing(e);
     }
 
     private void Hyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)
