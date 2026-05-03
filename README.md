@@ -1,3 +1,18 @@
+<table border="0">
+  <tr>
+    <td>
+      3-Apr-2026<br>
+      Windows<br>
+      <a href="https://landenlabs.com/android/index.html">Home</a>
+    </td>
+    <td>
+      <a href="https://landenlabs.com/android/index.html">
+        <img src="screens/landenlabs.webp" width="300" alt="Logo">
+      </a>
+    </td>
+  </tr>
+</table>
+
 # WinWidgetTime
 
 [![Build and Package](https://github.com/landenlabs/win-widget-time/actions/workflows/build.yml/badge.svg)](https://github.com/landenlabs/win-widget-time/actions/workflows/build.yml)
