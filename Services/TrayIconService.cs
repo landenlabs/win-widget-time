@@ -3,6 +3,7 @@ using Bitmap = System.Drawing.Bitmap;
 using Icon   = System.Drawing.Icon;
 using Pen    = System.Drawing.Pen;
 using System.Drawing.Drawing2D;
+using System.IO;
 using System.Windows.Forms;
 using WinWidgetTime.Models;
 
@@ -97,22 +98,24 @@ public sealed class TrayIconService : IDisposable
 
     private static Icon BuildIcon()
     {
+        var pngPath = Path.Combine(AppContext.BaseDirectory, "time.png");
+        if (File.Exists(pngPath))
+        {
+            using var bmp = new Bitmap(pngPath);
+            return Icon.FromHandle(bmp.GetHicon());
+        }
+
+        // Fallback drawn icon
         const int S = 16;
-        using var bmp = new Bitmap(S, S);
-        using var g = System.Drawing.Graphics.FromImage(bmp);
+        using var fallback = new Bitmap(S, S);
+        using var g = System.Drawing.Graphics.FromImage(fallback);
         g.SmoothingMode = SmoothingMode.AntiAlias;
         g.Clear(System.Drawing.Color.Transparent);
-
         using var pen = new Pen(System.Drawing.Color.FromArgb(220, 180, 220, 255), 1.5f);
-
-        // Clock face circle
         g.DrawEllipse(pen, 1, 1, S - 3, S - 3);
-
         int cx = S / 2, cy = S / 2;
-        g.DrawLine(pen, cx, cy, cx - 3, cy - 3); // hour hand  (~10 o'clock)
-        g.DrawLine(pen, cx, cy, cx, cy - 5);      // minute hand (~12 o'clock)
-
-        // App-lifetime icon — one HICON GDI object, freed on process exit
-        return Icon.FromHandle(bmp.GetHicon());
+        g.DrawLine(pen, cx, cy, cx - 3, cy - 3);
+        g.DrawLine(pen, cx, cy, cx, cy - 5);
+        return Icon.FromHandle(fallback.GetHicon());
     }
 }

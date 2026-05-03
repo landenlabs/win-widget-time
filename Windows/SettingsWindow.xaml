@@ -292,7 +292,9 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>  <!-- 0  section title -->
                         <RowDefinition Height="8"/>     <!-- 1  spacer -->
-                        <RowDefinition Height="Auto"/>  <!-- 2  font / opacity / bg / checkboxes -->
+                        <RowDefinition Height="Auto"/>  <!-- 2  font / opacity / bg -->
+                        <RowDefinition Height="8"/>     <!-- 3  spacer -->
+                        <RowDefinition Height="Auto"/>  <!-- 4  checkboxes -->
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
@@ -359,8 +361,11 @@
                                 MouseLeftButtonDown="BgColorSwatch_Click"
                                 ToolTip="Click to change background color"/>
 
-                        <Rectangle Width="1" Height="16" Fill="#FF454570" Margin="16,0"/>
+                    </StackPanel>
 
+                    <!-- Checkboxes row -->
+                    <StackPanel Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="5"
+                                Orientation="Horizontal" VerticalAlignment="Center">
                         <CheckBox x:Name="AutoStartCheck"
                                   Content="Auto-start on login"
                                   Foreground="#FFCDD6F4"
@@ -371,7 +376,7 @@
                                   Foreground="#FFCDD6F4"
                                   IsChecked="{Binding ShowTitleBar, Mode=TwoWay}"
                                   VerticalAlignment="Center"
-                                  Margin="16,0,0,0"/>
+                                  Margin="24,0,0,0"/>
                     </StackPanel>
                 </Grid>
             </Border>

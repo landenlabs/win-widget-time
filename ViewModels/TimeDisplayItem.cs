@@ -20,7 +20,7 @@ public class TimeDisplayItem : INotifyPropertyChanged
         Update();
     }
 
-    public string Label => _entry.Label.Length > 0 ? _entry.Label : _entry.CityName;
+    public string Label => _entry.Label;
 
     public SolidColorBrush ColorBrush
     {

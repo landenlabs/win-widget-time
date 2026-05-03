@@ -11,7 +11,10 @@
       "Bash(Select-Object -First 50)",
       "Bash(Format-Table FullName)",
       "Bash(git stash *)",
-      "Bash(Select-String \"error|Build\")"
+      "Bash(Select-String \"error|Build\")",
+      "Bash(Get-ChildItem -Path \"c:\\\\opt\\\\projects\\\\projects-c#\\\\win-widget-time\" -Recurse -Depth 3)",
+      "Bash(Select-Object FullName, PSIsContainer)",
+      "Bash(Format-Table -AutoSize)"
     ]
   }
 }
