@@ -19,7 +19,13 @@
       "Bash(Select-Object -First 100)",
       "Bash(Format-Table Name, FullName, Extension)",
       "PowerShell(Get-ChildItem -Path \"c:\\\\opt\\\\projects\\\\projects-c#\\\\win-widget-time\" -Force -Recurse -Depth 3 | Where-Object { $_.Extension -in @\\('.cs', '.xaml', '.xml', '.config'\\) } | Select-Object FullName | Sort-Object)",
-      "PowerShell(Get-ChildItem -Path \"c:\\\\opt\\\\projects\\\\projects-c#\\\\win-widget-time\" -Recurse -Depth 3 -Force | Where-Object { -not $_.PSIsContainer } | Where-Object { $_.Extension -in @\\('.ico', '.png', '.resx', '.rc'\\) } | Select-Object FullName)"
+      "PowerShell(Get-ChildItem -Path \"c:\\\\opt\\\\projects\\\\projects-c#\\\\win-widget-time\" -Recurse -Depth 3 -Force | Where-Object { -not $_.PSIsContainer } | Where-Object { $_.Extension -in @\\('.ico', '.png', '.resx', '.rc'\\) } | Select-Object FullName)",
+      "Bash(Get-ChildItem -Path \"C:\\\\opt\\\\projects\\\\projects-c#\\\\widgets\\\\win-widget-timer\" -Recurse -File)",
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "Bash(Sort-Object)",
+      "Bash(Get-ChildItem -Path \"C:\\\\opt\\\\projects\\\\projects-c#\\\\widgets\\\\win-widget-battery\" -Recurse -File)",
+      "Bash(Select-Object FullName)",
+      "Bash(Sort-Object FullName)"
     ]
   }
 }
