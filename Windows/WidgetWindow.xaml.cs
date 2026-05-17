@@ -148,24 +148,36 @@ public partial class WidgetWindow : Window
             var cursor = DesktopService.GetCursorPosition();
             var bounds = DesktopService.GetWindowBounds(this);
             _dragOffset = new System.Windows.Point(cursor.X - bounds.Left, cursor.Y - bounds.Top);
-            _isDragging = true;
-            WidgetBorder.CaptureMouse();
         }
         else
         {
-            DragMove();
-            SavePosition();
+            // DragMove() fails on Windows 10 with AllowsTransparency=True + WindowStyle=None;
+            // use manual capture instead, converting raw cursor pixels to screen DIPs in MouseMove.
+            _dragOffset = e.GetPosition(this);
         }
+        _isDragging = true;
+        WidgetBorder.CaptureMouse();
     }
 
     private void Widget_MouseMove(object sender, MouseEventArgs e)
     {
-        if (!_isDragging || !_isEmbedded) return;
+        if (!_isDragging) return;
 
         var cursor = DesktopService.GetCursorPosition();
-        int newX = cursor.X - (int)_dragOffset.X;
-        int newY = cursor.Y - (int)_dragOffset.Y;
-        DesktopService.MoveEmbeddedWindow(this, newX, newY);
+        if (_isEmbedded)
+        {
+            DesktopService.MoveEmbeddedWindow(this, cursor.X - (int)_dragOffset.X, cursor.Y - (int)_dragOffset.Y);
+        }
+        else
+        {
+            var source = PresentationSource.FromVisual(this);
+            if (source != null)
+            {
+                var scale = source.CompositionTarget.TransformFromDevice;
+                Left = cursor.X * scale.M11 - _dragOffset.X;
+                Top  = cursor.Y * scale.M22 - _dragOffset.Y;
+            }
+        }
     }
 
     private void Widget_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
@@ -179,6 +191,10 @@ public partial class WidgetWindow : Window
             var bounds = DesktopService.GetWindowBounds(this);
             MonitorService.SavePosition(_widget, bounds.Left, bounds.Top);
             SettingsService.Save(App.Settings);
+        }
+        else
+        {
+            SavePosition();
         }
     }
 
