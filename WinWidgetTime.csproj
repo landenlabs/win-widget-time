@@ -8,7 +8,7 @@
     <UseWindowsForms>true</UseWindowsForms>
     <AssemblyName>WinWidgetTime</AssemblyName>
     <RootNamespace>WinWidgetTime</RootNamespace>
-    <Version>6.05.05</Version>
+    <Version>6.05.06</Version>
     <AssemblyVersion>$(Version)</AssemblyVersion>
     <FileVersion>$(Version)</FileVersion>
     <Copyright>Copyright Â© 2026 LanDen Labs</Copyright>
