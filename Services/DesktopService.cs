@@ -33,6 +33,11 @@ public static class DesktopService
     /// </summary>
     public static bool EmbedInWallpaper(Window window)
     {
+        // Windows 10: reparenting a WPF AllowsTransparency=True window into WorkerW
+        // leaves the HWND alive but DWM never composites it, so the widget renders
+        // invisibly. Skip embedding on Win10 — caller falls back to SetAlwaysOnBottom.
+        if (!IsWindows11OrLater()) return false;
+
         var handle = new WindowInteropHelper(window).Handle;
         var progman = FindWindow("Progman", null);
 
@@ -79,5 +84,11 @@ public static class DesktopService
         var handle = new WindowInteropHelper(window).Handle;
         GetWindowRect(handle, out var rect);
         return rect;
+    }
+
+    private static bool IsWindows11OrLater()
+    {
+        var v = Environment.OSVersion.Version;
+        return v.Major > 10 || (v.Major == 10 && v.Build >= 22000);
     }
 }
