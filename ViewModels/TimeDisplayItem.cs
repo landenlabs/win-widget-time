@@ -56,7 +56,7 @@ public class TimeDisplayItem : INotifyPropertyChanged
 
         try
         {
-            var tzi = string.Equals(_entry.TimeZoneId, "Local", StringComparison.OrdinalIgnoreCase)
+            var tzi = string.Equals(_entry.TimeZoneId, PlaceEntry.LocalSentinel, StringComparison.OrdinalIgnoreCase)
                 ? TimeZoneInfo.Local
                 : TZConvert.GetTimeZoneInfo(_entry.TimeZoneId);
             var now = TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, tzi);

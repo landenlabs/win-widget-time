@@ -3,6 +3,7 @@ using System.Net.Http;
 using System.Text.Json;
 using GeoTimeZone;
 using TimeZoneConverter;
+using WinWidgetTime.Models;
 
 namespace WinWidgetTime.Services;
 
@@ -50,10 +51,12 @@ public static class GeocodingService
     {
         try
         {
-            var tzi = TZConvert.GetTimeZoneInfo(ianaTimeZoneId);
+            bool isLocal = string.Equals(ianaTimeZoneId, PlaceEntry.LocalSentinel, StringComparison.OrdinalIgnoreCase);
+            var tzi = isLocal ? TimeZoneInfo.Local : TZConvert.GetTimeZoneInfo(ianaTimeZoneId);
             var offset = tzi.GetUtcOffset(DateTimeOffset.UtcNow);
             string sign = offset >= TimeSpan.Zero ? "+" : "-";
-            return $"{ianaTimeZoneId}  (UTC{sign}{Math.Abs(offset.Hours):D2}:{Math.Abs(offset.Minutes):D2})";
+            string label = isLocal ? $"Local — this device ({tzi.Id})" : ianaTimeZoneId;
+            return $"{label}  (UTC{sign}{Math.Abs(offset.Hours):D2}:{Math.Abs(offset.Minutes):D2})";
         }
         catch { return ianaTimeZoneId; }
     }

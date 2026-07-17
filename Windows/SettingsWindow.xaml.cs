@@ -270,6 +270,22 @@ public partial class SettingsWindow : Window, INotifyPropertyChanged
     {
         if (string.IsNullOrWhiteSpace(cityName)) return;
 
+        // "Local" is a reserved name meaning "track this device's Windows time zone
+        // setting". It must never be sent to the geocoder — a real-world place could
+        // coincidentally share the name and silently pin the entry to a fixed zone
+        // (which is exactly how this got stuck on America/Chicago after traveling).
+        if (string.Equals(cityName, PlaceEntry.LocalSentinel, StringComparison.OrdinalIgnoreCase))
+        {
+            if (_selectedPlace == null) return;
+            _selectedPlace.TimeZoneId = PlaceEntry.LocalSentinel;
+            if (string.IsNullOrWhiteSpace(_selectedPlace.Label) || _selectedPlace.Label == "New City")
+                _selectedPlace.Label = PlaceEntry.LocalSentinel;
+
+            LookupStatus.Foreground = new SolidColorBrush(Color.FromRgb(0xA6, 0xE3, 0xA1));
+            LookupStatus.Text = $"✓  Using this device's time zone ({TimeZoneInfo.Local.Id})";
+            return;
+        }
+
         LookupBtn.IsEnabled = false;
         LookupStatus.Foreground = new SolidColorBrush(Color.FromRgb(0xA6, 0xAD, 0xC8));
         LookupStatus.Text = $"Looking up \"{cityName}\"…";

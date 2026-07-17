@@ -8,6 +8,13 @@ namespace WinWidgetTime.Models;
 
 public class PlaceEntry : INotifyPropertyChanged
 {
+    /// <summary>
+    /// Sentinel TimeZoneId value meaning "always track this device's current
+    /// Windows time zone setting" rather than a fixed IANA zone. Never resolve
+    /// this through geocoding — it must stay exactly this literal string.
+    /// </summary>
+    public const string LocalSentinel = "Local";
+
     private string _cityName = "";
     private string _timeZoneId = "UTC";
     private string _label = "";

@@ -33,6 +33,7 @@
             Background="#CC000000"
             CornerRadius="10"
             Padding="14,8,14,10"
+            Cursor="SizeAll"
             MouseLeftButtonDown="Widget_MouseLeftButtonDown"
             MouseMove="Widget_MouseMove"
             MouseLeftButtonUp="Widget_MouseLeftButtonUp"
