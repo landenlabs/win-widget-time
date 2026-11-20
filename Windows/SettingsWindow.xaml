@@ -378,6 +378,8 @@
                                   Foreground="#FFCDD6F4"
                                   IsChecked="{Binding AutoStartEnabled, Mode=TwoWay}"
                                   VerticalAlignment="Center"/>
+                        <TextBlock Text="{Binding AutoStartHint}" Foreground="#FF6C7086" FontSize="10"
+                                   VerticalAlignment="Center" Margin="8,0,0,0"/>
                         <CheckBox x:Name="TitleBarCheck"
                                   Content="Show title bar"
                                   Foreground="#FFCDD6F4"

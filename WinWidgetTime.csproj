@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net8.0-windows</TargetFramework>
+    <TargetFramework>net10.0-windows10.0.17763.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
@@ -11,7 +11,7 @@
     <Version>6.07.04</Version>
     <AssemblyVersion>$(Version)</AssemblyVersion>
     <FileVersion>$(Version)</FileVersion>
-    <Copyright>Copyright Â© 2026 LanDen Labs</Copyright>
+    <Copyright>Copyright © 2026 LanDen Labs - Dennis Lang</Copyright>
     <Company>LanDen Labs</Company>
     <Product>WinWidgetTime</Product>
     <Description>World clock desktop widget</Description>

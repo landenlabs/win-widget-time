@@ -56,6 +56,10 @@ public partial class SettingsWindow : Window, INotifyPropertyChanged
         set { _autoStartEnabled = value; OnPropertyChanged(); }
     }
 
+    public string AutoStartHint => AutoStartService.IsPackaged
+        ? "Installed app: also listed in Task Manager › Startup apps"
+        : "";
+
     private bool _showTitleBar;
     public bool ShowTitleBar
     {
@@ -586,8 +590,11 @@ public partial class SettingsWindow : Window, INotifyPropertyChanged
             _livePreviewTarget.Top  = _editPosY;
         }
 
-        AutoStartService.SetEnabled(AutoStartEnabled);
-        App.Settings.AutoStart = AutoStartEnabled;
+        var autoStartError = AutoStartService.SetEnabled(AutoStartEnabled);
+        App.Settings.AutoStart = AutoStartService.IsEnabled();
+        if (autoStartError != null)
+            System.Windows.MessageBox.Show(this, autoStartError, "WinWidgetTime — Auto-start",
+                MessageBoxButton.OK, MessageBoxImage.Information);
 
         SettingsService.Save(App.Settings);
         DialogResult = true;

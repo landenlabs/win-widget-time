@@ -17,7 +17,7 @@
 
 [![Build and Package](https://github.com/landenlabs/win-widget-time/actions/workflows/build.yml/badge.svg)](https://github.com/landenlabs/win-widget-time/actions/workflows/build.yml)
 ![Platform](https://img.shields.io/badge/platform-Windows%2010%20%2F%2011-blue)
-![.NET](https://img.shields.io/badge/.NET-8.0-purple)
+![.NET](https://img.shields.io/badge/.NET-10.0-purple)
 ![License](https://img.shields.io/badge/license-Apache%202.0-green)
 
 A lightweight, transparent **World Clock desktop widget** for Windows 10 and 11. Displays live time for multiple cities as a semi-transparent overlay directly on your desktop wallpaper.
@@ -56,7 +56,7 @@ A lightweight, transparent **World Clock desktop widget** for Windows 10 and 11.
 - **12 or 24-hour format** — configurable date and time display formats per city
 - **Background color & opacity** — live-preview color and transparency in the widget while Settings is open
 - **Show / hide title bar** — toggle the widget header on or off
-- **Auto-start on login** — optional Windows startup via registry
+- **Auto-start on login** — optional launch with Windows (a *Startup apps* entry when installed from the MSIX)
 - **Wallpaper embed mode** — render the widget at the wallpaper layer (below all windows)
 - **Animated logo** — company logo plays on the About dialog (MP4 with PNG fallback)
 
@@ -64,8 +64,9 @@ A lightweight, transparent **World Clock desktop widget** for Windows 10 and 11.
 
 ## Requirements
 
-- Windows 10 or Windows 11
-- [.NET 8.0 Desktop Runtime](https://dotnet.microsoft.com/en-us/download/dotnet/8.0) — install once; no SDK required
+- Windows 10 or Windows 11 (x64 or ARM64)
+- No .NET install needed for the release builds — the MSIX and zip are self-contained
+- Framework-dependent builds from source need the [.NET 10.0 Desktop Runtime](https://dotnet.microsoft.com/en-us/download/dotnet/10.0)
 
 ---
 
@@ -104,25 +105,35 @@ This approach works on Windows 10 because the Settings dialog is a normal opaque
 
 ## Installation
 
-### Option A — Download release zip
+See **[how-to-install.md](how-to-install.md)** for full details — every install option, why the MSIX is signed with a self-signed certificate, which Windows security features (SmartScreen, Smart App Control) can still block the app, and how to uninstall.
 
-1. Go to [Releases](https://github.com/landenlabs/win-widget-time/releases)
-2. Download `WinWidgetTime.zip`
-3. Extract to any folder (e.g. `C:\opt\bin\winwidgets\`)
-4. Run `WinWidgetTime.exe`
+### Option A — MSIX installer (recommended)
 
-> The release zip contains a single self-contained `WinWidgetTime.exe` plus an `Assets\` folder.  
-> You must have [.NET 8.0 Desktop Runtime](https://dotnet.microsoft.com/en-us/download/dotnet/8.0) installed.
+1. From [Releases](https://github.com/landenlabs/win-widget-time/releases) download `WinWidgetTime-<version>-x64.msix` (or `-arm64.msix`) and `install-msix.ps1` into the same folder
+2. Run it from a normal (non-admin) PowerShell:
+   `powershell -ExecutionPolicy Bypass -File .\install-msix.ps1`
+   It picks the `.msix` matching your CPU, trusts its self-signed certificate (one UAC prompt), installs, and launches the app. It shows up in the Start menu as **WinWidgetTime**.
 
-### Option B — Build from source
+> Windows only installs an MSIX whose signing certificate is trusted, so the self-signed certificate must be added to **Local Machine → Trusted People** first — the script does this for you.
+> To remove the app and the certificate later: `powershell -ExecutionPolicy Bypass -File .\uninstall-msix.ps1`
+
+### Option B — Portable release zip
+
+1. Download `WinWidgetTime.zip` from [Releases](https://github.com/landenlabs/win-widget-time/releases)
+2. Right-click the zip → **Properties** → tick **Unblock** → **OK**
+3. Extract to any folder (e.g. `C:\opt\bin\winwidgets\`) and run `WinWidgetTime.exe`
+
+> The zip contains a single self-contained `WinWidgetTime.exe` (assets bundled inside) — no .NET runtime needed. The exe is unsigned, so SmartScreen may warn (**More info → Run anyway**).
+
+### Option C — Build from source
 
 ```cmd
 git clone https://github.com/landenlabs/win-widget-time.git
 cd win-widget-time
-install.bat
+build.bat C:\opt\bin
 ```
 
-The `install.bat` script publishes the project and copies the output to `C:\opt\bin\winwidgets\`.
+`build.bat <dest-dir>` publishes a self-contained single-file exe to `<dest-dir>\winwidgets\` and writes a `<dest-dir>\WinWidgetTime.bat` launcher. With no argument it uses the `BINDIR` environment variable.
 
 ---
 
@@ -177,7 +188,7 @@ Open Settings via the hover button or right-click menu.
 | Opacity | Background opacity 0–100% — updates live |
 | Background | Background color swatch — click to change |
 | Show title bar | Toggle the widget header on/off |
-| Auto-start on login | Adds WinWidgetTime to Windows startup via registry |
+| Auto-start on login | Launch the widget when Windows starts (registry Run key for the zip; Task Manager › Startup apps entry for the MSIX) |
 
 ### Widget Position (bottom of Settings — Windows 10 workaround)
 
@@ -203,7 +214,7 @@ Settings are saved to `%APPDATA%\WinWidgetTime\settings.json`.
 
 ### Prerequisites
 
-- [.NET 8 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/8.0)
+- [.NET 10 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/10.0)
 - Windows (WPF requires a Windows build host)
 
 ### Build
@@ -218,17 +229,29 @@ dotnet build WinWidgetTime.csproj -c Release
 dotnet publish WinWidgetTime.csproj -c Release -r win-x64 --self-contained false -p:PublishSingleFile=true
 ```
 
-Output: `bin\Release\net8.0-windows\win-x64\publish\`
+Output: `bin\Release\net10.0-windows10.0.17763.0\win-x64\publish\`
 
-This produces a **single `WinWidgetTime.exe`** (all managed assemblies bundled) plus the `Assets\` folder. Users need only the .NET 8 Desktop Runtime — no SDK required.
+This produces a **single `WinWidgetTime.exe`** (all managed assemblies bundled) plus the `Assets\` folder. Users need only the .NET 10 Desktop Runtime — no SDK required.
 
 ### Build and install via batch script
 
 ```cmd
-install.bat
+build.bat <dest-dir>
 ```
 
-Kills any running instance, publishes, and copies all files to `C:\opt\bin\winwidgets\`.
+Kills any running instance, publishes a self-contained, compressed single-file exe (the same build as the release zip), copies it to `<dest-dir>\winwidgets\`, and writes a `<dest-dir>\WinWidgetTime.bat` launcher. `<dest-dir>` defaults to the `BINDIR` environment variable.
+
+### Build the MSIX locally
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .github\scripts\build-msix.ps1 -Arch x64 -Version 6.11.20 -PfxPath cert.pfx -PfxPassword secret
+```
+
+The certificate subject must equal the package Publisher (default `CN=LanDen Labs`). The package is written to `dist\`. Requires the Windows 10/11 SDK (`makeappx.exe`, `signtool.exe`).
+
+### Releases
+
+Pushing a `v*` tag runs [.github/workflows/build.yml](.github/workflows/build.yml). It publishes the portable zip and signed x64 + ARM64 MSIX packages, and attaches them to a GitHub release together with `install-msix.ps1`, `uninstall-msix.ps1` and (for self-signed builds) `WinWidgetTime.cer`. If the repo secrets `MSIX_CERT_BASE64` (base64 `.pfx`) and `MSIX_CERT_PASSWORD` are set, that certificate signs the packages; otherwise a self-signed `CN=LanDen Labs` certificate is generated for the build.
 
 ---
 
@@ -237,27 +260,35 @@ Kills any running instance, publishes, and copies all files to `C:\opt\bin\winwi
 ```
 WinWidgetTime/
 ├── Models/
-│   ├── AppSettings.cs       # Top-level settings (list of widgets, auto-start)
-│   ├── PlaceEntry.cs        # Per-city data model
-│   └── WidgetSettings.cs    # Per-widget data model (position, colors, places)
+│   ├── AppSettings.cs          # Top-level settings (list of widgets, auto-start)
+│   ├── PlaceEntry.cs           # Per-city data model
+│   └── WidgetSettings.cs       # Per-widget data model (position, colors, places)
 ├── Services/
-│   ├── AutoStartService.cs  # Windows registry startup
-│   ├── DesktopService.cs    # Wallpaper embed / Win32 window helpers
-│   ├── GeocodingService.cs  # OpenStreetMap city lookup
-│   ├── MonitorService.cs    # Per-monitor position save/restore
-│   ├── SettingsService.cs   # Load/save settings.json
-│   └── TrayIconService.cs   # System tray icon
+│   ├── AutoStartService.cs     # Run on login (Run key, or MSIX StartupTask)
+│   ├── DesktopService.cs       # Wallpaper embed / Win32 window helpers
+│   ├── GeocodingService.cs     # OpenStreetMap city lookup
+│   ├── MonitorService.cs       # Per-monitor position save/restore
+│   ├── SettingsService.cs      # Load/save settings.json
+│   └── TrayIconService.cs      # System tray icon
 ├── ViewModels/
-│   └── TimeDisplayItem.cs   # Live time binding per city
+│   └── TimeDisplayItem.cs      # Live time binding per city
 ├── Windows/
-│   ├── AboutWindow.xaml     # About dialog
-│   ├── ColorPickerWindow.xaml
-│   ├── SettingsWindow.xaml  # Settings dialog (incl. screen-map position picker)
-│   └── WidgetWindow.xaml    # Main widget overlay
+│   ├── AboutWindow.xaml        # About dialog
+│   ├── ColorPickerWindow.xaml  # Color picker dialog
+│   ├── SettingsWindow.xaml     # Settings dialog (incl. screen-map position picker)
+│   └── WidgetWindow.xaml       # Main widget overlay
 ├── Assets/
-│   ├── landen_labs.mp4      # Animated logo (About dialog)
-│   └── landenlabs.png       # Static logo fallback
-└── install.bat              # Build and install script
+│   ├── landen_labs.mp4         # Animated logo (About dialog)
+│   └── landenlabs.png          # Static logo fallback
+├── time.png                    # Tray icon image
+├── .github/
+│   ├── workflows/build.yml     # Release build: zip + signed MSIX (x64, arm64)
+│   └── scripts/build-msix.ps1  # MSIX packaging and signing
+├── screens/icon.png            # Source image for the MSIX logos
+├── build.bat                   # Build and install portable exe locally
+├── install-msix.ps1            # Trust certificate + install MSIX (end users)
+├── uninstall-msix.ps1          # Remove MSIX + its self-signed certificate(s)
+└── how-to-install.md           # Install options, certificate and security notes
 ```
 
 ---
@@ -270,6 +301,12 @@ WinWidgetTime/
 | Timezone lookup | [GeoTimeZone](https://github.com/mattjohnsonpint/GeoTimeZone) |
 | Timezone conversion | [TimeZoneConverter](https://github.com/mattjohnsonpint/TimeZoneConverter) |
 | Timezone data | [IANA TZDB](https://www.iana.org/time-zones) |
+
+---
+
+## Privacy
+
+No accounts, ads, analytics, telemetry or tracking. See [privacy.md](privacy.md) for exactly what the app reads, stores and (if anything) sends.
 
 ---
 
