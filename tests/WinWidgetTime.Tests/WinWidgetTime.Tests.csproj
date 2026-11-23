@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Unit tests for the pure widget geometry (drag, resize, hit-testing, on-screen recovery,
+    monitor fingerprint). WidgetGeometry.cs has no WPF/WinForms dependencies, so it is compiled
+    straight into this project instead of referencing the WinExe.
+
+    xUnit v3 builds the tests as a self-running exe (bin\...\WinWidgetTime.Tests.exe), so they
+    can run in-process; build.bat does that. "dotnet test" still works for VS Test Explorer / CI.
+    The in-process form avoids vstest's localhost socket between vstest.console and testhost,
+    which some endpoint-security / VPN software stalls for 90 s ("Failed to negotiate protocol").
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\Services\WidgetGeometry.cs" Link="Shared\WidgetGeometry.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageReference Include="xunit.v3" Version="3.2.0" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4" />
+  </ItemGroup>
+
+</Project>

@@ -37,6 +37,7 @@
             MouseLeftButtonDown="Widget_MouseLeftButtonDown"
             MouseMove="Widget_MouseMove"
             MouseLeftButtonUp="Widget_MouseLeftButtonUp"
+            LostMouseCapture="Widget_LostMouseCapture"
             MouseEnter="Widget_MouseEnter"
             MouseLeave="Widget_MouseLeave">
 

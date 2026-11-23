@@ -1,7 +1,7 @@
 <table border="0">
   <tr>
     <td>
-      17-May-2026<br>
+      23-Nov-2026<br>
       Windows<br>
       <a href="https://landenlabs.com/index.html">Home</a>
     </td>
@@ -48,7 +48,8 @@ A lightweight, transparent **World Clock desktop widget** for Windows 10 and 11.
 - **Transparent overlay** — sits directly on the desktop wallpaper, no taskbar clutter
 - **Live updates** — time refreshes every second
 - **Per-city colors** — assign a custom color to each city row
-- **City lookup** — search by city name via OpenStreetMap Nominatim (auto-populates timezone)
+- **City lookup** — search by city name via OpenStreetMap Nominatim (auto-populates timezone); the only network request the app makes — see [Privacy](#privacy)
+- **Resizable** — drag a bottom corner to resize; the font scales to fit (top corners also work when the title bar is hidden)
 - **Drag to reposition** — click and drag the widget anywhere on the desktop *(Windows 11)*
 - **Screen-map position picker** — drag a scaled widget marker across a miniature monitor map inside Settings to reposition the widget *(Windows 10 & 11 — see [Windows 10 notes](#windows-10-notes))*
 - **Multi-monitor aware** — position saved per monitor layout; snaps to a safe position if the saved location is off-screen
@@ -57,7 +58,7 @@ A lightweight, transparent **World Clock desktop widget** for Windows 10 and 11.
 - **Background color & opacity** — live-preview color and transparency in the widget while Settings is open
 - **Show / hide title bar** — toggle the widget header on or off
 - **Auto-start on login** — optional launch with Windows (a *Startup apps* entry when installed from the MSIX)
-- **Wallpaper embed mode** — render the widget at the wallpaper layer (below all windows)
+- **Wallpaper embed mode** — optional (*Embed in wallpaper* setting): render the widget at the wallpaper layer, behind the desktop icons *(Windows 11)*
 - **Animated logo** — company logo plays on the About dialog (MP4 with PNG fallback)
 
 ---
@@ -114,8 +115,9 @@ See **[how-to-install.md](how-to-install.md)** for full details — every instal
    `powershell -ExecutionPolicy Bypass -File .\install-msix.ps1`
    It picks the `.msix` matching your CPU, trusts its self-signed certificate (one UAC prompt), installs, and launches the app. It shows up in the Start menu as **WinWidgetTime**.
 
-> Windows only installs an MSIX whose signing certificate is trusted, so the self-signed certificate must be added to **Local Machine → Trusted People** first — the script does this for you.
-> To remove the app and the certificate later: `powershell -ExecutionPolicy Bypass -File .\uninstall-msix.ps1`
+> Windows only installs an MSIX whose signing certificate is trusted, so the self-signed certificate must be added to **Local Machine → Trusted People** first — the script does this for you.  
+> To remove the app and the certificate later: `powershell -ExecutionPolicy Bypass -File .\uninstall-msix.ps1`  
+> The certificate is shared by all LanDen Labs widgets, so it is kept while any of them is still installed (add `-Force` to remove it anyway).
 
 ### Option B — Portable release zip
 
@@ -145,7 +147,8 @@ build.bat C:\opt\bin
 |--------|--------|
 | **Hover** | Reveals ⚙ Settings and ? About buttons |
 | **Drag** | Repositions the widget *(Windows 11 only — use Settings on Windows 10)* |
-| **Right-click** | Opens context menu (Settings / About / Exit) |
+| **Drag a bottom corner** | Resizes the widget by scaling the font (top corners too when the title bar is hidden) |
+| **Right-click** | Opens context menu (Settings / About / Remove Widget / Exit) |
 
 ### Context menu
 
@@ -188,6 +191,7 @@ Open Settings via the hover button or right-click menu.
 | Opacity | Background opacity 0–100% — updates live |
 | Background | Background color swatch — click to change |
 | Show title bar | Toggle the widget header on/off |
+| Embed in wallpaper | Draw the widget on the wallpaper layer, behind the desktop icons (Windows 11); off keeps it as a normal window at the bottom of the window stack. Takes effect on next launch |
 | Auto-start on login | Launch the widget when Windows starts (registry Run key for the zip; Task Manager › Startup apps entry for the MSIX) |
 
 ### Widget Position (bottom of Settings — Windows 10 workaround)
@@ -239,7 +243,7 @@ This produces a **single `WinWidgetTime.exe`** (all managed assemblies bundled) 
 build.bat <dest-dir>
 ```
 
-Kills any running instance, publishes a self-contained, compressed single-file exe (the same build as the release zip), copies it to `<dest-dir>\winwidgets\`, and writes a `<dest-dir>\WinWidgetTime.bat` launcher. `<dest-dir>` defaults to the `BINDIR` environment variable.
+Kills any running instance, runs the unit tests, publishes a self-contained, compressed single-file exe (the same build as the release zip), copies it to `<dest-dir>\winwidgets\`, and writes a `<dest-dir>\WinWidgetTime.bat` launcher. `<dest-dir>` defaults to the `BINDIR` environment variable.
 
 ### Build the MSIX locally
 
@@ -247,11 +251,25 @@ Kills any running instance, publishes a self-contained, compressed single-file e
 powershell -ExecutionPolicy Bypass -File .github\scripts\build-msix.ps1 -Arch x64 -Version 6.11.20 -PfxPath cert.pfx -PfxPassword secret
 ```
 
-The certificate subject must equal the package Publisher (default `CN=LanDen Labs`). The package is written to `dist\`. Requires the Windows 10/11 SDK (`makeappx.exe`, `signtool.exe`).
+The certificate subject must equal the package Publisher (default `CN=LanDen Labs`). The package is written to `dist\`. Requires the Windows 10/11 SDK (`makeappx.exe`, `signtool.exe`). Add `-Store -IdentityName <name> -Publisher <CN=...> -PublisherDisplayName <name>` (and omit `-PfxPath`) to build an unsigned `-store.msix` for the Microsoft Store.
 
-### Releases
+### Unit tests
 
-Pushing a `v*` tag runs [.github/workflows/build.yml](.github/workflows/build.yml). It publishes the portable zip and signed x64 + ARM64 MSIX packages, and attaches them to a GitHub release together with `install-msix.ps1`, `uninstall-msix.ps1` and (for self-signed builds) `WinWidgetTime.cer`. If the repo secrets `MSIX_CERT_BASE64` (base64 `.pfx`) and `MSIX_CERT_PASSWORD` are set, that certificate signs the packages; otherwise a self-signed `CN=LanDen Labs` certificate is generated for the build.
+```cmd
+dotnet run --project tests\WinWidgetTime.Tests
+```
+
+The tests use xUnit v3 and run in-process. `dotnet test` also works (and Visual Studio's Test Explorer), but on machines whose security software inspects localhost traffic it can stall for 90 s with "Failed to negotiate protocol".
+
+Covers the window geometry that has regressed before: resize-corner hit testing, drag, corner resize (anchoring, min/max, DPI scaling, font scaling), pulling a widget back from an unplugged monitor, and the stable monitor-layout key used to save positions. The math lives in `Services/WidgetGeometry.cs` (no WPF dependencies) so it can be tested directly; the release workflow and `build.bat` both run these tests and stop on failure.
+
+### Releases and the Microsoft Store
+
+Pushing a `v*` tag runs [.github/workflows/build.yml](.github/workflows/build.yml). It attaches the portable zip, the signed MSIX packages (x64, arm64), the install scripts and (for self-signed builds) `WinWidgetTime.cer` to a GitHub release. If the repo secrets `MSIX_CERT_BASE64` (base64 `.pfx`) and `MSIX_CERT_PASSWORD` are set, that certificate signs the packages; otherwise a self-signed `CN=LanDen Labs` certificate is generated for the build.
+
+The same run also builds **unsigned** Store packages, `WinWidgetTime-<ver>-<arch>-store.msix`, and puts them in the build artifact only. Upload them in Partner Center, which signs and hosts them. Their identity comes from the repo Actions variables `MSIX_IDENTITY_NAME`, `MSIX_PUBLISHER` and `MSIX_PUBLISHER_DISPLAY_NAME`, which must match Partner Center > Product identity. If the variables aren't set, the step is skipped. Listing text, URLs and the Store logo are in [store-assets/](store-assets/store-listing.md).
+
+The project site and privacy policy are served by GitHub Pages from `docs/` at https://landenlabs.github.io/win-widget-time/.
 
 ---
 
@@ -269,7 +287,8 @@ WinWidgetTime/
 │   ├── GeocodingService.cs     # OpenStreetMap city lookup
 │   ├── MonitorService.cs       # Per-monitor position save/restore
 │   ├── SettingsService.cs      # Load/save settings.json
-│   └── TrayIconService.cs      # System tray icon
+│   ├── TrayIconService.cs      # System tray icon
+│   └── WidgetGeometry.cs       # Pure drag / resize / on-screen math (unit tested)
 ├── ViewModels/
 │   └── TimeDisplayItem.cs      # Live time binding per city
 ├── Windows/
@@ -278,12 +297,15 @@ WinWidgetTime/
 │   ├── SettingsWindow.xaml     # Settings dialog (incl. screen-map position picker)
 │   └── WidgetWindow.xaml       # Main widget overlay
 ├── Assets/
-│   ├── landen_labs.mp4         # Animated logo (About dialog)
+│   ├── landenlabs.mp4          # Animated logo (About dialog)
 │   └── landenlabs.png          # Static logo fallback
 ├── time.png                    # Tray icon image
 ├── .github/
-│   ├── workflows/build.yml     # Release build: zip + signed MSIX (x64, arm64)
-│   └── scripts/build-msix.ps1  # MSIX packaging and signing
+│   ├── workflows/build.yml     # Release build: tests, zip, signed MSIX + unsigned Store MSIX (x64, arm64)
+│   └── scripts/build-msix.ps1  # MSIX packaging and signing (or unsigned Store package)
+├── tests/WinWidgetTime.Tests/  # xUnit tests for WidgetGeometry
+├── docs/                       # GitHub Pages site: index.md (home page), privacy.md (privacy policy)
+├── store-assets/               # Microsoft Store listing text and logo
 ├── screens/icon.png            # Source image for the MSIX logos
 ├── build.bat                   # Build and install portable exe locally
 ├── install-msix.ps1            # Trust certificate + install MSIX (end users)
@@ -306,7 +328,7 @@ WinWidgetTime/
 
 ## Privacy
 
-No accounts, ads, analytics, telemetry or tracking. See [privacy.md](privacy.md) for exactly what the app reads, stores and (if anything) sends.
+No accounts, ads, analytics, telemetry or tracking. The only network request is the city lookup you start in Settings (Enter or **Look up**): it sends the city name you typed to [OpenStreetMap Nominatim](https://nominatim.openstreetmap.org/) to find its time zone. Nothing else is sent, and the device's location is never read. The [privacy policy](https://landenlabs.github.io/win-widget-time/privacy.html) ([source](docs/privacy.md)) lists exactly what the app reads, stores and sends.
 
 ---
 

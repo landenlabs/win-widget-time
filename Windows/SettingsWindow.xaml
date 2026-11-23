@@ -386,6 +386,15 @@
                                   IsChecked="{Binding ShowTitleBar, Mode=TwoWay}"
                                   VerticalAlignment="Center"
                                   Margin="24,0,0,0"/>
+                        <CheckBox x:Name="EmbedCheck"
+                                  Content="Embed in wallpaper"
+                                  Foreground="#FFCDD6F4"
+                                  IsChecked="{Binding EmbedInWallpaper, Mode=TwoWay}"
+                                  ToolTip="Draw the widget on the desktop wallpaper layer, behind the desktop icons (Windows 11). Off: a normal window kept at the bottom of the window stack."
+                                  VerticalAlignment="Center"
+                                  Margin="24,0,0,0"/>
+                        <TextBlock Text="(takes effect on next launch)" Foreground="#FF6C7086" FontSize="10"
+                                   VerticalAlignment="Center" Margin="8,0,0,0"/>
                     </StackPanel>
 
                     <!-- Widget Position header -->
@@ -427,9 +436,9 @@
                     HorizontalAlignment="Right"
                     Margin="16,10,16,14">
             <Button Content="Cancel" Style="{StaticResource SubtleButton}"
-                    Margin="0,0,8,0" Click="Cancel_Click"/>
+                    Margin="0,0,8,0" IsCancel="True" Click="Cancel_Click"/>
             <Button Content="Save"   Style="{StaticResource AccentButton}"
-                    Click="Save_Click"/>
+                    IsDefault="True" Click="Save_Click"/>
         </StackPanel>
 
         <!-- ── Format token reference popup ── -->

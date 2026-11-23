@@ -10,6 +10,8 @@ namespace WinWidgetTime;
 public partial class App : Application
 {
     private static Mutex? _mutex;
+    private static bool _ownsMutex;
+    private AboutWindow? _aboutWindow;
     private TrayIconService? _trayIcon;
     private readonly List<WidgetWindow> _widgetWindows = [];
 
@@ -19,8 +21,8 @@ public partial class App : Application
     {
         base.OnStartup(e);
 
-        _mutex = new Mutex(true, "WinWidgetTime_UniqueInstance_v1", out bool isNew);
-        if (!isNew)
+        _mutex = new Mutex(true, "WinWidgetTime_UniqueInstance_v1", out _ownsMutex);
+        if (!_ownsMutex)
         {
             MessageBox.Show("WinWidgetTime is already running.",
                 "WinWidgetTime", MessageBoxButton.OK, MessageBoxImage.Information);
@@ -38,7 +40,7 @@ public partial class App : Application
             getWidgets:       () => Settings.Widgets,
             onWidgetSettings: id => _widgetWindows.FirstOrDefault(w => w.WidgetId == id)?.OpenSettings(),
             onWidgetRemove:   RemoveWidget,
-            onAbout:          OpenAbout,
+            onAbout:          () => OpenAbout(),
             onExit:           Shutdown
         );
     }
@@ -46,7 +48,9 @@ public partial class App : Application
     protected override void OnExit(ExitEventArgs e)
     {
         _trayIcon?.Dispose();
-        _mutex?.ReleaseMutex();
+        // Only the instance that acquired the mutex may release it (ReleaseMutex throws otherwise).
+        if (_ownsMutex)
+            _mutex?.ReleaseMutex();
         _mutex?.Dispose();
         base.OnExit(e);
     }
@@ -86,7 +90,7 @@ public partial class App : Application
 
     private void RemoveWidget(string widgetId)
     {
-        if (Settings.Widgets.Count <= 1) return;
+        if (Settings.Widgets.Count <= 1) return;   // always keep at least one widget
 
         var win    = _widgetWindows.FirstOrDefault(w => w.WidgetId == widgetId);
         var widget = Settings.Widgets.FirstOrDefault(w => w.Id == widgetId);
@@ -99,5 +103,23 @@ public partial class App : Application
         }
     }
 
-    private void OpenAbout() => new AboutWindow().ShowDialog();
+    /// <summary>Shows the About dialog, or activates it if it's already open.</summary>
+    public void OpenAbout(Window? owner = null)
+    {
+        if (_aboutWindow != null)
+        {
+            _aboutWindow.Activate();
+            return;
+        }
+        try
+        {
+            _aboutWindow = new AboutWindow();
+            if (owner != null) _aboutWindow.Owner = owner;
+            _aboutWindow.ShowDialog();
+        }
+        finally
+        {
+            _aboutWindow = null;
+        }
+    }
 }

@@ -1,6 +1,10 @@
+---
+title: Privacy Policy
+---
+
 # WinWidgetTime Privacy Policy
 
-**Effective date:** November 20, 2026
+**Effective date:** November 23, 2026
 **Publisher:** LanDen Labs
 
 WinWidgetTime is a free Windows desktop widget that shows the current time for the cities you
@@ -27,7 +31,10 @@ showing the time for a city doesn't need the internet.
 
 | When | Service contacted | What is sent |
 | --- | --- | --- |
-| In **Settings**, when you press **Enter** or click **Look up** on a city name | [OpenStreetMap Nominatim](https://nominatim.openstreetmap.org/) (`nominatim.openstreetmap.org`) | The city or place name you typed, plus the app name (`WinWidgetTime`) as the browser identifier that Nominatim's usage policy requires |
+| In **Settings**, when you press **Enter** or click **Look up** on a city name | [OpenStreetMap Nominatim](https://nominatim.openstreetmap.org/) (`nominatim.openstreetmap.org`) | The city or place name you typed, sent over HTTPS, plus an app identifier (`WinWidgetTime/<version>` and a link to this project's GitHub page) as the User-Agent that Nominatim's usage policy requires |
+
+The lookup never runs in the background or on a timer, and the widget itself never contacts
+Nominatim. Cities you have already set up keep working without the internet.
 
 Nominatim sends back the place's map coordinates. The app turns those coordinates into a time zone
 on your PC, saves the time zone, and **throws the coordinates away**.
@@ -50,8 +57,8 @@ the MSIX package, Windows handles updates when you install a newer release.
 
 WinWidgetTime saves your settings in `%AppData%\WinWidgetTime\settings.json`:
 
-- each widget's position on each monitor layout, size, colors, opacity, font size and title-bar
-  choice,
+- each widget's name, position on each monitor layout, colors, opacity, font size, and its
+  title-bar and *Embed in wallpaper* choices,
 - your city list: the city name you typed, its time zone, the label shown on the widget, its color
   and its time format,
 - whether *Auto-start on login* is on.
@@ -83,7 +90,7 @@ this policy describes.
 
 If the app's behavior changes in a way that affects privacy, this page will be updated and the
 effective date above will change. The history of this page is public on
-[GitHub](https://github.com/landenlabs/win-widget-time/commits/main/privacy.md).
+[GitHub](https://github.com/landenlabs/win-widget-time/commits/main/docs/privacy.md).
 
 ## Contact
 

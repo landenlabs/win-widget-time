@@ -18,7 +18,11 @@ public static class GeocodingService
 
     static GeocodingService()
     {
-        Http.DefaultRequestHeaders.UserAgent.ParseAdd("WinWidgetTime/1.0 (desktop timezone widget)");
+        // Nominatim's usage policy asks for an identifying User-Agent: app name/version + a contact URL.
+        var v = typeof(GeocodingService).Assembly.GetName().Version;
+        string version = v == null ? "1.0" : $"{v.Major}.{v.Minor}.{v.Build}";
+        Http.DefaultRequestHeaders.UserAgent.ParseAdd(
+            $"WinWidgetTime/{version} (+https://github.com/landenlabs/win-widget-time)");
     }
 
     public static async Task<GeocodingResult?> ResolveAsync(string cityName)

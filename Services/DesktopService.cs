@@ -18,6 +18,14 @@ public static class DesktopService
     [DllImport("user32.dll")] static extern bool MoveWindow(IntPtr hWnd, int x, int y, int w, int h, bool repaint);
     [DllImport("user32.dll")] static extern bool GetWindowRect(IntPtr hWnd, out RECT rect);
     [DllImport("user32.dll")] static extern bool GetCursorPos(out POINT pt);
+    [DllImport("user32.dll")] static extern IntPtr GetParent(IntPtr hWnd);
+    [DllImport("user32.dll")] static extern bool ScreenToClient(IntPtr hWnd, ref POINT pt);
+    [DllImport("user32.dll", EntryPoint = "GetWindowLongPtrW")] static extern IntPtr GetWindowLongPtr(IntPtr hWnd, int index);
+    [DllImport("user32.dll", EntryPoint = "SetWindowLongPtrW")] static extern IntPtr SetWindowLongPtr(IntPtr hWnd, int index, IntPtr value);
+
+    private const int GWL_EXSTYLE = -20;
+    private const long WS_EX_TOOLWINDOW = 0x00000080;
+    private const long WS_EX_APPWINDOW  = 0x00040000;
 
     private static readonly IntPtr HWND_BOTTOM = new(1);
     private const uint SWP_NOMOVE = 0x0002;
@@ -65,12 +73,36 @@ public static class DesktopService
         SetWindowPos(handle, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
     }
 
-    /// <summary>Moves an embedded (child) window using physical pixel coordinates.</summary>
-    public static void MoveEmbeddedWindow(Window window, int x, int y)
+    /// <summary>
+    /// Moves an embedded (child of WorkerW) window so its top-left lands at the given SCREEN pixel
+    /// position. MoveWindow on a child takes parent-client coordinates, and WorkerW's origin is the
+    /// virtual-screen origin — which is negative when a monitor sits left of / above the primary —
+    /// so convert screen → parent-client first. Size defaults to the current window size.
+    /// </summary>
+    public static void MoveEmbeddedWindow(Window window, int screenX, int screenY, int? widthPx = null, int? heightPx = null)
     {
         var handle = new WindowInteropHelper(window).Handle;
         GetWindowRect(handle, out var rect);
-        MoveWindow(handle, x, y, rect.Right - rect.Left, rect.Bottom - rect.Top, true);
+        int w = widthPx  ?? rect.Right - rect.Left;
+        int h = heightPx ?? rect.Bottom - rect.Top;
+
+        var pt = new POINT { X = screenX, Y = screenY };
+        var parent = GetParent(handle);
+        if (parent != IntPtr.Zero)
+            ScreenToClient(parent, ref pt);
+
+        MoveWindow(handle, pt.X, pt.Y, w, h, true);
+    }
+
+    /// <summary>
+    /// Adds WS_EX_TOOLWINDOW so the widget doesn't appear in Alt-Tab / Task View
+    /// (ShowInTaskbar="False" alone only hides the taskbar button).
+    /// </summary>
+    public static void HideFromAltTab(Window window)
+    {
+        var handle = new WindowInteropHelper(window).Handle;
+        long ex = GetWindowLongPtr(handle, GWL_EXSTYLE).ToInt64();
+        SetWindowLongPtr(handle, GWL_EXSTYLE, new IntPtr((ex | WS_EX_TOOLWINDOW) & ~WS_EX_APPWINDOW));
     }
 
     public static POINT GetCursorPosition()

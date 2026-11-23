@@ -67,7 +67,12 @@ public partial class SettingsWindow : Window, INotifyPropertyChanged
         set { _showTitleBar = value; OnPropertyChanged(); }
     }
 
-    private string _globalFormat = "ddd MMM dd  hh:mm:ss tt";
+    private bool _embedInWallpaper;
+    public bool EmbedInWallpaper
+    {
+        get => _embedInWallpaper;
+        set { _embedInWallpaper = value; OnPropertyChanged(); }
+    }
 
     private string _bgColorHex = "#000000";
     public string BgColorHex
@@ -100,12 +105,15 @@ public partial class SettingsWindow : Window, INotifyPropertyChanged
     }
 
     // ── Originals for Cancel restore ────────────────────────────────────────
+    // Only font size, background and position are previewed live on the widget; places are
+    // edited on clones and everything else is applied on Save, so those need no revert.
 
     private readonly int _origFontSize;
     private readonly string _origBgColor;
     private readonly int _origBgOpacityPercent;
-    private readonly double _origPosX;
-    private readonly double _origPosY;
+    private readonly int _origPosX;   // screen pixels
+    private readonly int _origPosY;
+    private bool _committed;          // set by Save; anything else that closes the window reverts the preview
 
     // ── Position picker ──────────────────────────────────────────────────────
 
@@ -121,7 +129,7 @@ public partial class SettingsWindow : Window, INotifyPropertyChanged
     private Point _markerDragStart;
     private double _markerDragOrigLeft;
     private double _markerDragOrigTop;
-    private double _editPosX;
+    private double _editPosX;   // screen pixels
     private double _editPosY;
 
     public string WidgetPositionText => $"X: {(int)_editPosX}  Y: {(int)_editPosY}";
@@ -138,10 +146,9 @@ public partial class SettingsWindow : Window, INotifyPropertyChanged
 
         // Snapshot originals so Cancel can restore the live preview
         _origFontSize         = _widget.FontSize;
-        _origBgColor          = _widget.BackgroundColor;
+        _origBgColor          = _widget.BackgroundColor ?? "#000000";
         _origBgOpacityPercent = (int)Math.Round(_widget.BackgroundOpacity * 100);
-        _origPosX = _livePreviewTarget?.Left ?? _widget.PositionX;
-        _origPosY = _livePreviewTarget?.Top  ?? _widget.PositionY;
+        (_origPosX, _origPosY) = _livePreviewTarget?.ScreenPosition ?? MonitorService.GetPosition(_widget);
         _editPosX = _origPosX;
         _editPosY = _origPosY;
 
@@ -151,16 +158,14 @@ public partial class SettingsWindow : Window, INotifyPropertyChanged
 
         WidgetName        = _widget.Name;
         FontSizeValue     = _widget.FontSize;
-        _globalFormat     = _widget.DateTimeFormat;
         AutoStartEnabled  = AutoStartService.IsEnabled();
         ShowTitleBar      = _widget.ShowTitleBar;
-        _bgColorHex       = _widget.BackgroundColor;
+        EmbedInWallpaper  = _widget.EmbedInWallpaper;
+        _bgColorHex       = _origBgColor;
         _bgOpacityPercent = (int)Math.Round(_widget.BackgroundOpacity * 100);
         OnPropertyChanged(nameof(BgColorHex));
         OnPropertyChanged(nameof(BgColorBrush));
         OnPropertyChanged(nameof(BgOpacityPercent));
-
-        Places.CollectionChanged += (_, _) => { };
 
         if (Places.Count > 0)
             SelectedPlace = Places[0];
@@ -267,7 +272,10 @@ public partial class SettingsWindow : Window, INotifyPropertyChanged
     private async void CityBox_KeyDown(object sender, KeyEventArgs e)
     {
         if (e.Key == Key.Enter && _selectedPlace != null)
+        {
+            e.Handled = true;   // Enter here means "Look up", not the default (Save) button
             await DoLookup(_selectedPlace.CityName);
+        }
     }
 
     private async Task DoLookup(string cityName)
@@ -501,8 +509,8 @@ public partial class SettingsWindow : Window, INotifyPropertyChanged
         double markerW   = Math.Max(widgetWpx * _mapScale, 14);
         double markerH   = Math.Max(widgetHpx * _mapScale, 8);
 
-        double markerLeft = _mapLeft + (_editPosX * _dpiScaleX - minX) * _mapScale;
-        double markerTop  = _mapTop  + (_editPosY * _dpiScaleY - minY) * _mapScale;
+        double markerLeft = _mapLeft + (_editPosX - minX) * _mapScale;
+        double markerTop  = _mapTop  + (_editPosY - minY) * _mapScale;
 
         _widgetMarker = new Border
         {
@@ -548,17 +556,13 @@ public partial class SettingsWindow : Window, INotifyPropertyChanged
         Canvas.SetLeft(_widgetMarker, newL);
         Canvas.SetTop(_widgetMarker, newT);
 
-        // Canvas coords → screen pixels → WPF DIPs
-        _editPosX = ((newL - _mapLeft) / _mapScale + _mapOffsetX) / _dpiScaleX;
-        _editPosY = ((newT - _mapTop)  / _mapScale + _mapOffsetY) / _dpiScaleY;
+        // Canvas coords → screen pixels
+        _editPosX = (newL - _mapLeft) / _mapScale + _mapOffsetX;
+        _editPosY = (newT - _mapTop)  / _mapScale + _mapOffsetY;
 
         OnPropertyChanged(nameof(WidgetPositionText));
 
-        if (_livePreviewTarget != null)
-        {
-            _livePreviewTarget.Left = _editPosX;
-            _livePreviewTarget.Top  = _editPosY;
-        }
+        _livePreviewTarget?.MoveTo((int)Math.Round(_editPosX), (int)Math.Round(_editPosY));
 
         e.Handled = true;
     }
@@ -578,17 +582,14 @@ public partial class SettingsWindow : Window, INotifyPropertyChanged
         _widget.Name             = WidgetName.Trim().Length > 0 ? WidgetName.Trim() : _widget.Name;
         _widget.Places           = [.. Places];
         _widget.FontSize         = FontSizeValue;
-        _widget.DateTimeFormat   = _globalFormat.Trim().Length > 0 ? _globalFormat.Trim() : _widget.DateTimeFormat;
         _widget.ShowTitleBar     = ShowTitleBar;
+        _widget.EmbedInWallpaper = EmbedInWallpaper;
         _widget.BackgroundColor  = _bgColorHex;
         _widget.BackgroundOpacity = _bgOpacityPercent / 100.0;
 
-        MonitorService.SavePosition(_widget, _editPosX, _editPosY);
-        if (_livePreviewTarget != null)
-        {
-            _livePreviewTarget.Left = _editPosX;
-            _livePreviewTarget.Top  = _editPosY;
-        }
+        int posX = (int)Math.Round(_editPosX), posY = (int)Math.Round(_editPosY);
+        MonitorService.SavePosition(_widget, posX, posY);
+        _livePreviewTarget?.MoveTo(posX, posY);
 
         var autoStartError = AutoStartService.SetEnabled(AutoStartEnabled);
         App.Settings.AutoStart = AutoStartService.IsEnabled();
@@ -597,21 +598,30 @@ public partial class SettingsWindow : Window, INotifyPropertyChanged
                 MessageBoxButton.OK, MessageBoxImage.Information);
 
         SettingsService.Save(App.Settings);
+        _committed = true;
         DialogResult = true;
         Close();
     }
 
     private void Cancel_Click(object sender, RoutedEventArgs e)
     {
+        DialogResult = false;   // OnClosing does the revert
+        Close();
+    }
+
+    /// <summary>Esc, Cancel and the title-bar X all close without Save — every one of them must undo the live preview.</summary>
+    protected override void OnClosing(CancelEventArgs e)
+    {
+        base.OnClosing(e);
+        if (!e.Cancel && !_committed)
+            RevertPreview();
+    }
+
+    private void RevertPreview()
+    {
         _livePreviewTarget?.ApplyFontSize(_origFontSize);
         _livePreviewTarget?.ApplyBackground(_origBgColor, _origBgOpacityPercent / 100.0);
-        if (_livePreviewTarget != null)
-        {
-            _livePreviewTarget.Left = _origPosX;
-            _livePreviewTarget.Top  = _origPosY;
-        }
-        DialogResult = false;
-        Close();
+        _livePreviewTarget?.MoveTo(_origPosX, _origPosY);
     }
 
     // ── INotifyPropertyChanged ───────────────────────────────────────────────

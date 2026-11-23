@@ -18,7 +18,7 @@
     <ApplicationIcon>time.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
-    <Content Include="Assets\landen_labs.mp4">
+    <Content Include="Assets\landenlabs.mp4">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Assets\landenlabs.png">
@@ -31,5 +31,12 @@
   <ItemGroup>
     <PackageReference Include="GeoTimeZone" Version="6.1.0" />
     <PackageReference Include="TimeZoneConverter" Version="6.0.0" />
+  </ItemGroup>
+
+  <!-- Unit tests live in tests\ with their own project; keep them out of the app build. -->
+  <ItemGroup>
+    <Compile Remove="tests\**" />
+    <None Remove="tests\**" />
+    <Page Remove="tests\**" />
   </ItemGroup>
 </Project>

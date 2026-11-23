@@ -45,6 +45,7 @@ public static class SettingsService
                         TimeFormat        = legacy.TimeFormat,
                         BackgroundColor   = legacy.BackgroundColor,
                         BackgroundOpacity = legacy.BackgroundOpacity,
+                        EmbedInWallpaper  = legacy.EmbedInWallpaper,
                     });
                     settings.AutoStart = legacy.AutoStart;
                 }
@@ -58,10 +59,24 @@ public static class SettingsService
         catch { return Defaults(); }
     }
 
+    /// <summary>
+    /// Writes to a temp file then swaps it in, so a crash or power loss mid-write can't leave a
+    /// truncated settings.json behind. Failures are swallowed (saving is called on every drag/resize,
+    /// and an IO error there — e.g. the file locked by another process — must not crash the app).
+    /// </summary>
     public static void Save(AppSettings settings)
     {
-        Directory.CreateDirectory(SettingsDir);
-        File.WriteAllText(SettingsFile, JsonSerializer.Serialize(settings, JsonOptions));
+        try
+        {
+            Directory.CreateDirectory(SettingsDir);
+            var tmp = SettingsFile + ".tmp";
+            File.WriteAllText(tmp, JsonSerializer.Serialize(settings, JsonOptions));
+            File.Move(tmp, SettingsFile, overwrite: true);
+        }
+        catch
+        {
+            // Best effort.
+        }
     }
 
     public static WidgetSettings DefaultWidget() => new()

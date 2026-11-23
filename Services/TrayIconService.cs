@@ -96,26 +96,67 @@ public sealed class TrayIconService : IDisposable
         else dispatcher.Invoke(action);
     }
 
+    // Colored clock icon drawn at the system small-icon size (DPI aware) so it
+    // stays crisp and visible on both light and dark taskbars.
     private static Icon BuildIcon()
     {
-        var pngPath = Path.Combine(AppContext.BaseDirectory, "time.png");
-        if (File.Exists(pngPath))
+        int s = Math.Max(16, SystemInformation.SmallIconSize.Width);
+        try
         {
-            using var bmp = new Bitmap(pngPath);
+            using var bmp = new Bitmap(s, s, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+            using (var g = System.Drawing.Graphics.FromImage(bmp))
+            {
+                g.SmoothingMode = SmoothingMode.AntiAlias;
+                g.Clear(System.Drawing.Color.Transparent);
+
+                float u   = s / 16f;                 // 1 "pixel" at 16px design size
+                float pad = 0.5f * u;
+                var face  = new System.Drawing.RectangleF(pad, pad, s - 2 * pad, s - 2 * pad);
+
+                // Blue gradient face
+                using (var faceBrush = new LinearGradientBrush(face,
+                           System.Drawing.Color.FromArgb(80, 170, 255),
+                           System.Drawing.Color.FromArgb(20, 80, 190), 90f))
+                    g.FillEllipse(faceBrush, face);
+
+                // White rim
+                using (var rimPen = new Pen(System.Drawing.Color.White, 1.2f * u))
+                    g.DrawEllipse(rimPen, face.X + 0.6f * u, face.Y + 0.6f * u,
+                                  face.Width - 1.2f * u, face.Height - 1.2f * u);
+
+                float cx = s / 2f, cy = s / 2f;
+
+                // Hour ticks at 12 / 3 / 6 / 9
+                using (var tickPen = new Pen(System.Drawing.Color.White, 1.2f * u))
+                {
+                    float r1 = 5.2f * u, r2 = 6.4f * u;
+                    for (int i = 0; i < 4; i++)
+                    {
+                        double a = i * Math.PI / 2;
+                        g.DrawLine(tickPen,
+                            cx + (float)Math.Sin(a) * r1, cy - (float)Math.Cos(a) * r1,
+                            cx + (float)Math.Sin(a) * r2, cy - (float)Math.Cos(a) * r2);
+                    }
+                }
+
+                // Hour hand (white, ~10 o'clock) and minute hand (amber, ~2 o'clock)
+                using (var hourPen = new Pen(System.Drawing.Color.White, 1.6f * u)
+                           { StartCap = LineCap.Round, EndCap = LineCap.Round })
+                    g.DrawLine(hourPen, cx, cy, cx - 3.0f * u, cy - 2.0f * u);
+                using (var minPen = new Pen(System.Drawing.Color.FromArgb(255, 190, 40), 1.4f * u)
+                           { StartCap = LineCap.Round, EndCap = LineCap.Round })
+                    g.DrawLine(minPen, cx, cy, cx + 2.8f * u, cy - 4.2f * u);
+
+                // Red hub
+                float hub = 1.4f * u;
+                using (var hubBrush = new System.Drawing.SolidBrush(System.Drawing.Color.FromArgb(235, 60, 60)))
+                    g.FillEllipse(hubBrush, cx - hub, cy - hub, 2 * hub, 2 * hub);
+            }
             return Icon.FromHandle(bmp.GetHicon());
         }
-
-        // Fallback drawn icon
-        const int S = 16;
-        using var fallback = new Bitmap(S, S);
-        using var g = System.Drawing.Graphics.FromImage(fallback);
-        g.SmoothingMode = SmoothingMode.AntiAlias;
-        g.Clear(System.Drawing.Color.Transparent);
-        using var pen = new Pen(System.Drawing.Color.FromArgb(220, 180, 220, 255), 1.5f);
-        g.DrawEllipse(pen, 1, 1, S - 3, S - 3);
-        int cx = S / 2, cy = S / 2;
-        g.DrawLine(pen, cx, cy, cx - 3, cy - 3);
-        g.DrawLine(pen, cx, cy, cx, cy - 5);
-        return Icon.FromHandle(fallback.GetHicon());
+        catch
+        {
+            return System.Drawing.SystemIcons.Application;
+        }
     }
 }

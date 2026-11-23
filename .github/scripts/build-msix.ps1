@@ -7,23 +7,36 @@
 #
 # The certificate subject MUST equal -Publisher (the manifest Identity Publisher),
 # otherwise signtool rejects the package.
+#
+# Microsoft Store build: pass -Store and omit -PfxPath. The package is left UNSIGNED (the Store
+# re-signs it) and -IdentityName / -Publisher / -PublisherDisplayName MUST match
+# Partner Center > Product management > Product identity, or the upload is rejected.
+#
+#   pwsh .github/scripts/build-msix.ps1 -Arch x64 -Version 6.11.11 -Store `
+#        -IdentityName 12345LanDenLabs.WinWidgetTime -Publisher 'CN=XXXXXXXX-...' -PublisherDisplayName 'LanDen Labs'
 
 param(
     [Parameter(Mandatory)] [ValidateSet('x64', 'arm64')] [string] $Arch,
     [Parameter(Mandatory)] [string] $Version,
-    [Parameter(Mandatory)] [string] $PfxPath,
-    [Parameter(Mandatory)] [string] $PfxPassword,
+    [string] $PfxPath = '',
+    [string] $PfxPassword = '',
     [string] $Publisher = 'CN=LanDen Labs',
+    [string] $IdentityName = 'LanDenLabs.WinWidgetTime',
+    [string] $PublisherDisplayName = 'LanDen Labs',
+    [switch] $Store,
     [string] $OutDir = 'dist',
     [string] $TimestampUrl = ''
 )
 
 $ErrorActionPreference = 'Stop'
+if (-not $Store -and -not $PfxPath) { throw '-PfxPath is required unless -Store is given' }
 $root = Resolve-Path (Join-Path $PSScriptRoot '..\..')
 Push-Location $root
 try {
-    # MSIX needs a 4-part numeric version (each part 0..65535); "v6.06.20" -> "6.6.20.0"
-    $parts = @($Version.TrimStart('v').Split('.') | ForEach-Object { [int]$_ })
+    # MSIX needs a 4-part numeric version (each part 0..65535); "v6.06.20" -> "6.6.20.0".
+    # Pre-release / build suffixes are dropped: "v6.11.17-beta" -> "6.11.17.0".
+    $numeric = ($Version.TrimStart('v') -split '[-+]', 2)[0]
+    $parts = @($numeric.Split('.') | ForEach-Object { [int]$_ })
     while ($parts.Count -lt 4) { $parts += 0 }
     $msixVersion = ($parts[0..3]) -join '.'
 
@@ -65,7 +78,11 @@ try {
     finally { $src.Dispose() }
 
     # 3. Manifest
-    $pubEsc = [System.Security.SecurityElement]::Escape($Publisher)
+    # The city lookup (OpenStreetMap Nominatim) is an outbound HTTPS call; a full-trust desktop app
+    # needs no extra capability for that, so runFullTrust is the only one declared.
+    $pubEsc  = [System.Security.SecurityElement]::Escape($Publisher)
+    $idEsc   = [System.Security.SecurityElement]::Escape($IdentityName)
+    $pubName = [System.Security.SecurityElement]::Escape($PublisherDisplayName)
     @"
 <?xml version="1.0" encoding="utf-8"?>
 <Package
@@ -74,11 +91,12 @@ try {
   xmlns:uap5="http://schemas.microsoft.com/appx/manifest/uap/windows10/5"
   xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
   IgnorableNamespaces="uap uap5 rescap">
-  <Identity Name="LanDenLabs.WinWidgetTime" Publisher="$pubEsc" Version="$msixVersion" ProcessorArchitecture="$Arch" />
+  <Identity Name="$idEsc" Publisher="$pubEsc" Version="$msixVersion" ProcessorArchitecture="$Arch" />
   <Properties>
     <DisplayName>WinWidgetTime</DisplayName>
-    <PublisherDisplayName>LanDen Labs</PublisherDisplayName>
+    <PublisherDisplayName>$pubName</PublisherDisplayName>
     <Logo>Images\StoreLogo.png</Logo>
+    <Description>Transparent world clock desktop widget showing the live time for the cities you choose</Description>
   </Properties>
   <Dependencies>
     <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.17763.0" MaxVersionTested="10.0.26100.0" />
@@ -110,14 +128,19 @@ try {
 
     # 4. Pack + sign
     New-Item -ItemType Directory -Force $OutDir | Out-Null
-    $msix = Join-Path (Resolve-Path $OutDir) "WinWidgetTime-$($Version.TrimStart('v'))-$Arch.msix"
+    $suffix = if ($Store) { '-store' } else { '' }
+    $msix = Join-Path (Resolve-Path $OutDir) "WinWidgetTime-$($Version.TrimStart('v'))-$Arch$suffix.msix"
     & $makeappx pack /o /d $layout /p $msix
     if ($LASTEXITCODE) { throw "makeappx failed ($LASTEXITCODE)" }
 
-    $signArgs = @('sign', '/fd', 'SHA256', '/f', $PfxPath, '/p', $PfxPassword)
-    if ($TimestampUrl) { $signArgs += @('/tr', $TimestampUrl, '/td', 'SHA256') }
-    & $signtool @signArgs $msix
-    if ($LASTEXITCODE) { throw "signtool failed ($LASTEXITCODE)" }
+    if ($Store) {
+        Write-Host "Store package left unsigned (Partner Center signs it)"
+    } else {
+        $signArgs = @('sign', '/fd', 'SHA256', '/f', $PfxPath, '/p', $PfxPassword)
+        if ($TimestampUrl) { $signArgs += @('/tr', $TimestampUrl, '/td', 'SHA256') }
+        & $signtool @signArgs $msix
+        if ($LASTEXITCODE) { throw "signtool failed ($LASTEXITCODE)" }
+    }
 
     Write-Host "Built $msix (version $msixVersion)"
 }

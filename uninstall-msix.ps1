@@ -14,11 +14,16 @@
 # own certificate behind. This script removes ALL of them: certificates whose Subject equals the
 # package Publisher (default 'CN=LanDen Labs') AND that are self-signed (Issuer == Subject).
 # CA-issued certificates are never touched.
+#
+# All LanDen Labs widgets (Perf, Battery, Time, Timer) share the same publisher certificate subject.
+# If another package from the same publisher is still installed, the certificates are KEPT (removing
+# them would break that app's trust). Pass -Force to remove them anyway.
 
 [CmdletBinding(SupportsShouldProcess)]
 param(
     [string] $Publisher = '',
-    [switch] $KeepApp
+    [switch] $KeepApp,
+    [switch] $Force
 )
 
 $ErrorActionPreference = 'Stop'
@@ -56,7 +61,17 @@ if ($KeepApp) {
     }
 }
 
-# 3. Find matching self-signed certificates in the stores an install could have used
+# 3. Keep the certificate while any other package signed by the same publisher still needs it
+$others = @(Get-AppxPackage -ErrorAction SilentlyContinue |
+    Where-Object { $_.Publisher -eq $Publisher -and $_.Name -ne $packageName })
+if ($others.Count -gt 0 -and -not $Force) {
+    Write-Host "Keeping '$Publisher' certificate(s) - still used by:"
+    $others | ForEach-Object { Write-Host "  $($_.Name)" }
+    Write-Host 'Run with -Force to remove them anyway.'
+    exit 0
+}
+
+# 4. Find matching self-signed certificates in the stores an install could have used
 $stores = 'Cert:\LocalMachine\TrustedPeople', 'Cert:\LocalMachine\Root',
           'Cert:\CurrentUser\TrustedPeople', 'Cert:\CurrentUser\Root'
 $found = foreach ($s in $stores) {
@@ -73,7 +88,7 @@ $found | ForEach-Object { Write-Host "Found:   $($_.Store)\$($_.Thumbprint)  (ex
 
 if (-not $PSCmdlet.ShouldProcess("$($found.Count) certificate(s)", 'Remove')) { exit 0 }
 
-# 4. Remove them. CurrentUser stores need no elevation; LocalMachine stores do.
+# 5. Remove them. CurrentUser stores need no elevation; LocalMachine stores do.
 $userCerts    = @($found | Where-Object { $_.Store -like 'Cert:\CurrentUser\*' })
 $machineCerts = @($found | Where-Object { $_.Store -like 'Cert:\LocalMachine\*' })
 
@@ -95,7 +110,7 @@ if ($machineCerts.Count -gt 0) {
     }
 }
 
-# 5. Verify
+# 6. Verify
 $left = @($found | Where-Object { Test-Path "$($_.Store)\$($_.Thumbprint)" })
 if ($left.Count -gt 0) {
     $left | ForEach-Object { Write-Host "Still present: $($_.Store)\$($_.Thumbprint)" -ForegroundColor Red }

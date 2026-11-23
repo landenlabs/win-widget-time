@@ -16,11 +16,9 @@ public partial class AboutWindow : Window
         InitializeComponent();
         Topmost = true;
 
-        var version = Assembly.GetExecutingAssembly()
-                               .GetName().Version?.ToString() ?? "?";
-        VersionText.Text = $"v{version}  ·  World clock desktop widget";
+        VersionText.Text = $"v{AppVersion()}  ·  World clock desktop widget";
 
-        var mp4 = Path.Combine(AppContext.BaseDirectory, "Assets", "landen_labs.mp4");
+        var mp4 = Path.Combine(AppContext.BaseDirectory, "Assets", "landenlabs.mp4");
         if (File.Exists(mp4))
         {
             LogoPlayer.MediaEnded += (_, _) =>
@@ -46,6 +44,25 @@ public partial class AboutWindow : Window
                 LogoFallback.Visibility = System.Windows.Visibility.Visible;
             }
         }
+    }
+
+    /// <summary>
+    /// Three-part version (major.minor.patch). When installed as an MSIX (Store or sideload) the
+    /// package version is authoritative — it's what the Store and "Apps &amp; features" show.
+    /// </summary>
+    internal static string AppVersion()
+    {
+        if (Services.AutoStartService.IsPackaged)
+        {
+            try
+            {
+                var v = global::Windows.ApplicationModel.Package.Current.Id.Version;
+                return $"{v.Major}.{v.Minor}.{v.Build}";
+            }
+            catch { /* fall back to the assembly version */ }
+        }
+        var a = Assembly.GetExecutingAssembly().GetName().Version;
+        return a is null ? "?" : $"{a.Major}.{a.Minor}.{a.Build}";
     }
 
     protected override void OnClosing(System.ComponentModel.CancelEventArgs e)

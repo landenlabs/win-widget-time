@@ -19,6 +19,10 @@ jobs:
       with:
         dotnet-version: '10.0.x'
 
+    # Drag / resize / on-screen geometry regression tests - a failing test blocks the release.
+    - name: Unit tests
+      run: dotnet run --project tests/WinWidgetTime.Tests -c Release
+
     - name: Publish portable single-file (self-contained, compressed)
       run: >
         dotnet publish WinWidgetTime.csproj -c Release -r win-x64
@@ -81,6 +85,30 @@ jobs:
             -OutDir dist
         }
 
+    # Microsoft Store packages: UNSIGNED (the Store re-signs them). Their identity must match
+    # Partner Center > Product management > Product identity. Set these repo Variables
+    # (Settings > Secrets and variables > Actions > Variables):
+    #   MSIX_IDENTITY_NAME, MSIX_PUBLISHER, MSIX_PUBLISHER_DISPLAY_NAME
+    # Output goes to dist-store/, in the build artifact only (not the public release).
+    # Upload WinWidgetTime-<ver>-<arch>-store.msix in Partner Center > Packages.
+    - name: Build Store MSIX (x64 + arm64, unsigned)
+      shell: pwsh
+      env:
+        MSIX_IDENTITY_NAME: ${{ vars.MSIX_IDENTITY_NAME }}
+        MSIX_PUBLISHER: ${{ vars.MSIX_PUBLISHER }}
+        MSIX_PUBLISHER_DISPLAY_NAME: ${{ vars.MSIX_PUBLISHER_DISPLAY_NAME }}
+      run: |
+        if (-not $env:MSIX_IDENTITY_NAME -or -not $env:MSIX_PUBLISHER) {
+          Write-Host '::warning::MSIX_IDENTITY_NAME / MSIX_PUBLISHER repo variables not set - skipping Store MSIX.'
+          exit 0
+        }
+        $pubName = if ($env:MSIX_PUBLISHER_DISPLAY_NAME) { $env:MSIX_PUBLISHER_DISPLAY_NAME } else { 'LanDen Labs' }
+        foreach ($arch in 'x64', 'arm64') {
+          ./.github/scripts/build-msix.ps1 -Arch $arch -Version '${{ github.ref_name }}' -Store `
+            -IdentityName $env:MSIX_IDENTITY_NAME -Publisher $env:MSIX_PUBLISHER `
+            -PublisherDisplayName $pubName -OutDir dist-store
+        }
+
     - name: Remove signing certificate
       if: always()
       shell: pwsh
@@ -93,6 +121,7 @@ jobs:
         path: |
           WinWidgetTime.zip
           dist/*
+          dist-store/*
         retention-days: 30
 
     - name: Create GitHub Release and attach packages

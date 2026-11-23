@@ -24,6 +24,15 @@ echo Build and install WinWidgetTime (portable, compressed single-file) to "%DES
 :: Kill widget if running, so it can be re-built
 taskkill /IM WinWidgetTime.exe /F 2>nul
 
+:: Drag / resize / on-screen geometry regression tests
+:: Runs in-process (xUnit v3 self-running exe) rather than via "dotnet test", whose localhost
+:: socket to the test host can be stalled for 90 s by endpoint-security / VPN software.
+dotnet run --project tests\WinWidgetTime.Tests -c Release
+if errorlevel 1 (
+    echo ERROR: unit tests failed.
+    exit /b 1
+)
+
 :: Portable self-contained single-file build:
 ::   --self-contained true                  bundle the .NET runtime (runs without an install)
 ::   PublishSingleFile                       emit one .exe

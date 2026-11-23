@@ -1,0 +1,7 @@
+# GitHub Pages (Jekyll) config for the docs/ site.
+# Enable it in: repo Settings > Pages > Build and deployment > Source: "Deploy from a branch",
+# Branch: main, Folder: /docs.
+# Site URL: https://landenlabs.github.io/win-widget-time/
+title: WinWidgetTime
+description: A lightweight, transparent world clock desktop widget that shows the time for the cities you choose.
+theme: jekyll-theme-minimal
